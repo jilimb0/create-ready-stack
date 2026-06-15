@@ -1,0 +1,44 @@
+{
+  "name": "create-project-cli",
+  "version": "0.1.0",
+  "description": "Create a production-ready Node.js + Next.js monorepo with Telegram bot support, following a structured 6-level development methodology (Idea → Architecture → Implementation → Quality → Release → Deploy)",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "create-project-cli": "./bin/create-project-cli.mjs"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node bin/create-project-cli.mjs init",
+    "dev": "ts-node src/cli.ts",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "cli",
+    "project-generator",
+    "monorepo",
+    "nextjs",
+    "nodejs",
+    "telegram-bot"
+  ],
+  "author": "Maksym Opanasenko",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^12.3.2",
+    "yargs": "^17.7.2",
+    "fs-extra": "^11.2.0",
+    "ejs": "^3.1.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/inquirer": "^9.0.7",
+    "@types/yargs": "^17.0.33",
+    "@types/fs-extra": "^11.0.4",
+    "@types/ejs": "^3.1.5",
+    "typescript": "^5.7.2",
+    "ts-node": "^10.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

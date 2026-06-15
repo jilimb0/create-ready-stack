@@ -1,0 +1,11 @@
+node_modules
+dist
+.npm
+.next
+coverage
+.env
+.env.local
+.env.production
+*.log
+pm2.log
+.DS_Store
