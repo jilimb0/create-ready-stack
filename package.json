@@ -19,7 +19,7 @@
     "lint": "biome lint src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm build"
+    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "keywords": [
     "cli",
@@ -33,13 +33,11 @@
   "author": "Maksym Opanasenko",
   "license": "MIT",
   "dependencies": {
-    "ejs": "^3.1.10",
     "fs-extra": "^11.2.0",
     "inquirer": "^12.3.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@types/ejs": "^3.1.5",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^22.10.2",
@@ -51,5 +49,10 @@
   },
   "engines": {
     "node": ">=26.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

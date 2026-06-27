@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import inquirer from 'inquirer';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -93,7 +94,7 @@ const QUESTION_BLOCKS = {
 export const initCommand = {
   command: 'init',
   describe: 'Create a new project following the proven stack pattern',
-  handler: async () => {
+  handler: async (force = false) => {
     console.log('\n Initializing new project...\n');
 
     const cwd = process.cwd();
@@ -110,7 +111,7 @@ export const initCommand = {
       return;
     }
 
-    if (!isDirectoryEmpty(projectDir)) {
+    if (!force && !isDirectoryEmpty(projectDir)) {
       const confirm = await inquirer.prompt([
         { type: 'confirm', name: 'proceed', message: `Folder "${projectName}" is not empty. Continue?`, default: false },
       ]);
@@ -149,6 +150,7 @@ export const initCommand = {
       risks: level01Answers.risks,
       criticalRisk: level01Answers.criticalRisk,
       coreDomain: level02Answers.coreDomain,
+      jwtSecret: crypto.randomBytes(32).toString('hex'),
     };
 
     console.log('\n Generating project...\n');

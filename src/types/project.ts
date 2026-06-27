@@ -24,6 +24,8 @@ export interface ProjectAnswers {
   criticalRisk: string;
 
   coreDomain: string;
+
+  jwtSecret: string;
 }
 
 export interface GeneratedDomain {

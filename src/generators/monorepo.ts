@@ -55,10 +55,7 @@ async function generateBackend(cwd: string, answers: ProjectAnswers) {
     "typescript": "^5.7.0",
     "tsx": "^4.19.0",
     "vitest": "^3.2.0",
-    ${isDrizzle ? `"drizzle-kit": "^0.31.0"` : `"@types/bcryptjs": "^2.4.0"`}${answers.multiUser && !isDrizzle ? `,\n    "@types/bcryptjs": "^2.4.0"` : ''}
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ${isDrizzle ? '["esbuild"]' : '["@prisma/client", "prisma", "esbuild"]'}
+    ${isDrizzle ? `"drizzle-kit": "^0.31.0"${answers.multiUser ? `,\n    "@types/bcryptjs": "^2.4.0"` : ''}` : `"@types/bcryptjs": "^2.4.0"`}
   }
 }
 ` : `{
@@ -89,9 +86,6 @@ async function generateBackend(cwd: string, answers: ProjectAnswers) {
     "tsx": "^4.19.0",
     "vitest": "^3.2.0",
     "@types/express": "^5.0.0"${answers.multiUser ? ',\n    "@types/bcryptjs": "^2.4.0"' : ''}
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["@prisma/client", "prisma", "esbuild"]
   }
 }
 `;
@@ -140,10 +134,10 @@ export default defineConfig({
 `);
     const schemaDir = path.join(dir, 'src/db/schema');
     await fs.ensureDir(schemaDir);
-    await fs.writeFile(path.join(schemaDir, 'users.ts'), `import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+    await fs.writeFile(path.join(schemaDir, 'users.ts'), `import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
-  id: text('id').primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash'),
   name: text('name'),
@@ -169,15 +163,17 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { HTTPException } from 'hono/http-exception';
+${answers.multiUser ? "import { auth } from './auth.js';" : ''}
 
 const app = new Hono();
 
 app.use('*', cors());
 app.use('*', logger());
 
+${answers.multiUser ? "app.route('/auth', auth);" : ''}
+
 app.get('/health', (c) => c.json({ status: 'ok', project: '${answers.projectName}' }));
 
-// Error handler
 app.onError((err, c) => {
   if (err instanceof HTTPException) return err.getResponse();
   console.error(err);
@@ -190,9 +186,11 @@ serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) }, (info) => {
 `);
   } else {
     await fs.writeFile(path.join(dir, 'src/index.ts'), `import express from 'express';
+${answers.multiUser ? "import authRouter from './auth.js';" : ''}
 
 const app = express();
 app.use(express.json());
+${answers.multiUser ? "app.use('/auth', authRouter);" : ''}
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', project: '${answers.projectName}' }));
 
@@ -204,12 +202,17 @@ app.listen(Number(process.env.PORT ?? 3000), () => {
 
   // Auth routes (if multi-user)
   if (answers.multiUser) {
-    await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { z } from 'zod';
+    if (isHono && isDrizzle) {
+      await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { z } from 'zod';
 import { Hono } from 'hono';
-import { sign, verify } from 'jose';
+import { HTTPException } from 'hono/http-exception';
+import { SignJWT, jwtVerify } from 'jose';
 import { hash, compare } from 'bcryptjs';
+import { eq } from 'drizzle-orm';
+import { db } from './db/index.js';
+import { users } from './db/schema/users.js';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? 'dev-secret');
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? '${answers.jwtSecret}');
 const JWT_ISSUER = '${answers.projectName}';
 
 export const auth = new Hono();
@@ -223,21 +226,209 @@ const registerSchema = z.object({
 auth.post('/register', async (c) => {
   const body = registerSchema.parse(await c.req.json());
   const passwordHash = await hash(body.password, 12);
-  // TODO: insert user into DB
-  return c.json({ message: 'User created' }, 201);
+  const [user] = await db.insert(users).values({
+    email: body.email,
+    passwordHash,
+    name: body.name,
+  }).returning();
+  return c.json({ message: 'User created', id: user.id }, 201);
 });
 
 auth.post('/login', async (c) => {
   const body = registerSchema.pick({ email: true, password: true }).parse(await c.req.json());
-  // TODO: verify credentials and return JWT
-  const token = await sign({ sub: body.email }, JWT_SECRET, { issuer: JWT_ISSUER });
+  const [user] = await db.select().from(users).where(eq(users.email, body.email)).limit(1);
+  if (!user || !user.passwordHash) throw new HTTPException(401, { message: 'Invalid credentials' });
+  const valid = await compare(body.password, user.passwordHash);
+  if (!valid) throw new HTTPException(401, { message: 'Invalid credentials' });
+  const token = await new SignJWT({ sub: user.id }).setProtectedHeader({ alg: 'HS256' }).setIssuer(JWT_ISSUER).sign(JWT_SECRET);
   return c.json({ token });
 });
 
 export async function verifyJWT(token: string) {
-  return verify(token, JWT_SECRET, { issuer: JWT_ISSUER });
+  const { payload } = await jwtVerify(token, JWT_SECRET, { issuer: JWT_ISSUER }); return payload;
 }
 `);
+    } else if (isHono && !isDrizzle) {
+      await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { z } from 'zod';
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+import { SignJWT, jwtVerify } from 'jose';
+import { hash, compare } from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? '${answers.jwtSecret}');
+const JWT_ISSUER = '${answers.projectName}';
+
+export const auth = new Hono();
+
+const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().optional(),
+});
+
+auth.post('/register', async (c) => {
+  const body = registerSchema.parse(await c.req.json());
+  const passwordHash = await hash(body.password, 12);
+  const user = await prisma.user.create({
+    data: { email: body.email, password: passwordHash, name: body.name },
+  });
+  return c.json({ message: 'User created', id: user.id }, 201);
+});
+
+auth.post('/login', async (c) => {
+  const body = registerSchema.pick({ email: true, password: true }).parse(await c.req.json());
+  const user = await prisma.user.findUnique({ where: { email: body.email } });
+  if (!user || !user.password) throw new HTTPException(401, { message: 'Invalid credentials' });
+  const valid = await compare(body.password, user.password);
+  if (!valid) throw new HTTPException(401, { message: 'Invalid credentials' });
+  const token = await new SignJWT({ sub: user.id }).setProtectedHeader({ alg: 'HS256' }).setIssuer(JWT_ISSUER).sign(JWT_SECRET);
+  return c.json({ token });
+});
+
+export async function verifyJWT(token: string) {
+  const { payload } = await jwtVerify(token, JWT_SECRET, { issuer: JWT_ISSUER }); return payload;
+}
+`);
+    } else if (!isHono && isDrizzle) {
+      await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { SignJWT, jwtVerify } from 'jose';
+import { hash, compare } from 'bcryptjs';
+import { eq } from 'drizzle-orm';
+import { db } from './db/index.js';
+import { users } from './db/schema/users.js';
+
+const router = Router();
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? '${answers.jwtSecret}');
+const JWT_ISSUER = '${answers.projectName}';
+
+const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().optional(),
+});
+
+router.post('/register', async (req: Request, res: Response) => {
+  try {
+    const body = registerSchema.parse(req.body);
+    const passwordHash = await hash(body.password, 12);
+    const [user] = await db.insert(users).values({
+      email: body.email,
+      passwordHash,
+      name: body.name,
+    }).returning();
+    res.status(201).json({ message: 'User created', id: user.id });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: err.errors });
+    } else {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+});
+
+router.post('/login', async (req: Request, res: Response) => {
+  try {
+    const body = registerSchema.pick({ email: true, password: true }).parse(req.body);
+    const [user] = await db.select().from(users).where(eq(users.email, body.email)).limit(1);
+    if (!user || !user.passwordHash) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+    const valid = await compare(body.password, user.passwordHash);
+    if (!valid) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+    const token = await new SignJWT({ sub: user.id }).setProtectedHeader({ alg: 'HS256' }).setIssuer(JWT_ISSUER).sign(JWT_SECRET);
+    res.json({ token });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: err.errors });
+    } else {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+});
+
+export async function verifyJWT(token: string) {
+  const { payload } = await jwtVerify(token, JWT_SECRET, { issuer: JWT_ISSUER }); return payload;
+}
+
+export default router;
+`);
+    } else {
+      await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { SignJWT, jwtVerify } from 'jose';
+import { hash, compare } from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+const router = Router();
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? '${answers.jwtSecret}');
+const JWT_ISSUER = '${answers.projectName}';
+
+const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().optional(),
+});
+
+router.post('/register', async (req: Request, res: Response) => {
+  try {
+    const body = registerSchema.parse(req.body);
+    const passwordHash = await hash(body.password, 12);
+    const user = await prisma.user.create({
+      data: { email: body.email, password: passwordHash, name: body.name },
+    });
+    res.status(201).json({ message: 'User created', id: user.id });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: err.errors });
+    } else {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+});
+
+router.post('/login', async (req: Request, res: Response) => {
+  try {
+    const body = registerSchema.pick({ email: true, password: true }).parse(req.body);
+    const user = await prisma.user.findUnique({ where: { email: body.email } });
+    if (!user || !user.password) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+    const valid = await compare(body.password, user.password);
+    if (!valid) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+    const token = await new SignJWT({ sub: user.id }).setProtectedHeader({ alg: 'HS256' }).setIssuer(JWT_ISSUER).sign(JWT_SECRET);
+    res.json({ token });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: err.errors });
+    } else {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+});
+
+export async function verifyJWT(token: string) {
+  const { payload } = await jwtVerify(token, JWT_SECRET, { issuer: JWT_ISSUER }); return payload;
+}
+
+export default router;
+`);
+    }
   }
 
   // Test file
@@ -545,9 +736,9 @@ async function generateDocker(cwd: string, answers: ProjectAnswers) {
         image: 'postgres:16-alpine',
         ports: ['5432:5432'],
         environment: {
-          POSTGRES_USER: 'postgres',
-          POSTGRES_PASSWORD: 'postgres',
-          POSTGRES_DB: answers.projectName,
+          POSTGRES_USER: '${POSTGRES_USER:-postgres}',
+          POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-postgres}',
+          POSTGRES_DB: '${POSTGRES_DB:-' + answers.projectName + '}',
         },
         volumes: ['postgres_data:/var/lib/postgresql/data'],
         restart: 'unless-stopped',
@@ -557,7 +748,7 @@ async function generateDocker(cwd: string, answers: ProjectAnswers) {
         ports: ['3000:3000'],
         environment: {
           NODE_ENV: 'production',
-          DATABASE_URL: `postgresql://postgres:postgres@db:5432/${answers.projectName}`,
+          DATABASE_URL: 'postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-' + answers.projectName + '}',
         },
         depends_on: ['db'],
         restart: 'unless-stopped',
@@ -578,7 +769,7 @@ async function generateDocker(cwd: string, answers: ProjectAnswers) {
       build: { context: './bot', dockerfile: './Dockerfile' },
       environment: {
         NODE_ENV: 'production',
-        TELEGRAM_TOKEN: `${answers.projectName}-token`,
+        TELEGRAM_TOKEN: '${TELEGRAM_TOKEN}',
       },
       restart: 'unless-stopped',
     };
@@ -607,9 +798,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with: { version: 11 }
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm }
+        with: { node-version: 26, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
 
@@ -631,9 +821,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with: { version: 11 }
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm }
+        with: { node-version: 26, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
         env:

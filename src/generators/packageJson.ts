@@ -30,9 +30,6 @@ export async function generatePackageJson(cwd: string, answers: ProjectAnswers) 
       turbo: '^2.9.0',
     },
     engines: { node: '>=22.0.0', pnpm: '>=11.0.0' },
-    pnpm: {
-      onlyBuiltDependencies: ['@biomejs/biome', 'esbuild', '@prisma/client', 'prisma', 'sharp'],
-    },
   }, null, 2));
 
   // pnpm-workspace.yaml
@@ -40,6 +37,13 @@ export async function generatePackageJson(cwd: string, answers: ProjectAnswers) 
   if (hasBot) packages.push('bot');
   await fs.writeFile(path.join(cwd, 'pnpm-workspace.yaml'), `packages:
 ${packages.map(p => `  - '${p}'`).join('\n')}
+
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - 'esbuild'
+  - '@prisma/client'
+  - 'prisma'
+  - 'sharp'
 `);
 
   // turbo.json
@@ -98,10 +102,11 @@ coverage
 `);
 
   // .env.example
+  const jwtLine = answers.multiUser ? `JWT_SECRET="${answers.jwtSecret}"` : '';
   await fs.writeFile(path.join(cwd, '.env.example'), `DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"
 NODE_ENV=development
 PORT=3000
-JWT_SECRET="change-me-in-production"
+${jwtLine}
 VITE_API_URL="http://localhost:3000"
 ${hasBot ? 'TELEGRAM_TOKEN=""' : ''}
 `);
@@ -123,6 +128,12 @@ ${hasBot ? '- bot: @tgwrapper/core Telegram bot' : ''}
 
   // README.md
   const cb = '```';
+  const readmeEnvBlock = answers.multiUser
+    ? `DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"
+JWT_SECRET="${answers.jwtSecret}"
+VITE_API_URL="http://localhost:3000"`
+    : `DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"
+VITE_API_URL="http://localhost:3000"`;
   const readme = `# ${answers.projectTitle}
 
 ${answers.problem}
@@ -176,9 +187,7 @@ ${cb}
 Copy \`.env.example\` to \`.env\` and configure:
 
 ${cb}bash
-DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"
-JWT_SECRET="your-secret-here"
-VITE_API_URL="http://localhost:3000"
+${readmeEnvBlock}
 ${cb}
 
 ## Deployment
