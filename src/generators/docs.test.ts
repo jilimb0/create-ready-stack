@@ -51,12 +51,12 @@ describe('generateDocs', () => {
   it('creates LEVELS.md', async () => {
     await generateDocs(tmpDir, defaultAnswers);
     const content = await fs.readFile(path.join(tmpDir, 'docs', 'LEVELS.md'), 'utf-8');
-    expect(content).toContain('Уровень 01');
-    expect(content).toContain('Уровень 02');
-    expect(content).toContain('Уровень 03');
-    expect(content).toContain('Уровень 04');
-    expect(content).toContain('Уровень 05');
-    expect(content).toContain('Уровень 06');
+    expect(content).toContain('Level 01');
+    expect(content).toContain('Level 02');
+    expect(content).toContain('Level 03');
+    expect(content).toContain('Level 04');
+    expect(content).toContain('Level 05');
+    expect(content).toContain('Level 06');
   });
 
   it('creates brief.md with project title and answers', async () => {

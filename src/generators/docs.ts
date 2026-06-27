@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import * as path from 'node:path';
 import fs from 'fs-extra';
 import type { ProjectAnswers } from '../types/project.js';
@@ -7,395 +5,395 @@ import type { ProjectAnswers } from '../types/project.js';
 export async function generateDocs(cwd: string, answers: ProjectAnswers) {
   const docsBase = path.join(cwd, 'docs');
 
-  // 1. Уровень 01 - Idea
+  // 1. Level 01 - Idea
   const ideaDir = path.join(docsBase, '01-idea');
   await fs.ensureDir(ideaDir);
 
   const briefContent = `# Brief - ${answers.projectTitle}
 
-## Проблема
+## Problem
 ${answers.problem}
 
-## ЦА (Target Audience)
+## Target Audience
 ${answers.targetAudience}
 
-## Основной сценарий
+## Main Scenario
 ${answers.mainScenario}
 
-## Цели v1
+## Success Criteria for v1
 ${answers.successCriteria}
 
-## Ключевые метрики (3-6 месяцев)
+## Key Metrics (3-6 months)
 ${answers.metrics}
 
-## Временной бюджет
+## Time Budget
 ${answers.timeBudget}
 
-## Финансовые ограничения
+## Financial Constraints
 ${answers.financialConstraints}
 
-## Жёсткие требования
+## Hard Requirements
 ${answers.stackRequirements}
 
-## Интеграции
+## Integrations
 ${answers.integrations}
 
-## Функции v1
+## Features for v1
 ${answers.functionsV1}
 
-## Бизнес-гипотезы
+## Business Hypotheses
 ${answers.hypotheses}
 
-## Риски
+## Risks
 ${answers.risks}
 
-## Критичный риск
+## Critical Risk
 ${answers.criticalRisk}
 `;
   await fs.writeFile(path.join(ideaDir, 'brief.md'), briefContent);
 
-  const dod01 = `# Definition of Done - Уровень 01 (Идея и контекст)
+  const dod01 = `# Definition of Done - Level 01 (Idea & Context)
 
-## Критерии завершения уровня 01:
-- [ ] brief.md заполнен с ответами на все вопросы
-- [ ] Проблема продукта чётко описана
-- [ ] ЦА определена
-- [ ] Основной сценарий описан (1-3 шага)
-- [ ] Успех v1 определён
-- [ ] Метрики на 3-6 месяцев установлены
-- [ ] Временный и финансовый бюджет оценены
-- [ ] Требования по стеку зафиксированы
-- [ ] Интеграции перечислены
-- [ ] Функции v1 (3-7) описаны
-- [ ] Гипотезы (H1-H3) сформулированы
-- [ ] Риски оценены, критичный риск выделен
+## Completion criteria for Level 01:
+- [ ] brief.md filled with answers to all questions
+- [ ] Product problem is clearly described
+- [ ] Target audience is defined
+- [ ] Main scenario is described (1-3 steps)
+- [ ] Success criteria for v1 are defined
+- [ ] Metrics for 3-6 months are set
+- [ ] Time and financial budgets are estimated
+- [ ] Stack requirements are captured
+- [ ] Integrations are listed
+- [ ] Features for v1 (3-7) are described
+- [ ] Hypotheses (H1-H3) are formulated
+- [ ] Risks are assessed, critical risk highlighted
 `;
   await fs.writeFile(path.join(ideaDir, 'dod.md'), dod01);
 
-  // 2. Уровень 02 - Architecture
+  // 2. Level 02 - Architecture
   const archDir = path.join(docsBase, '02-arch');
   await fs.ensureDir(archDir);
 
   const _hasUsers = answers.multiUser;
-  const domainsContent = `# Домены - Уровень 02 (Архитектура и дизайн)
+  const domainsContent = `# Domains - Level 02 (Architecture & Design)
 
-## Core-домен: ${answers.coreDomain}
+## Core Domain: ${answers.coreDomain}
 
-## Список доменов:
+## Domain List:
 
 ### auth
-**Ответственность:** Управление аутентификацией и авторизацией
-**Сущности:** User, Session, Token
+**Responsibility:** Authentication and authorization management
+**Entities:** User, Session, Token
 **Use cases:** login, logout, register, refreshToken
 
 ### users
-**Ответственность:** Управление профилями пользователей
-**Сущности:** User, Profile
+**Responsibility:** User profile management
+**Entities:** User, Profile
 **Use cases:** getProfile, updateProfile
 
 ### ${answers.coreDomain}
-**Ответственность:** Core-домен проекта
-**Сущности:** ${answers.coreDomain}, ${answers.coreDomain}Item
+**Responsibility:** Core domain of the project
+**Entities:** ${answers.coreDomain}, ${answers.coreDomain}Item
 **Use cases:** create${answers.coreDomain}, get${answers.coreDomain}, update${answers.coreDomain}, delete${answers.coreDomain}
 
 ### integrations
-**Ответственность:** Интеграция с внешними сервисами
-**Сущности:** Integration, IntegrationConfig
+**Responsibility:** Integration with external services
+**Entities:** Integration, IntegrationConfig
 **Use cases:** connectIntegration, syncData
 
 ### activity
-**Ответственность:** Логирование активности пользователей
-**Сущности:** Activity, ActivityLog
+**Responsibility:** User activity logging
+**Entities:** Activity, ActivityLog
 **Use cases:** logActivity, getActivity
 
 ### analytics
-**Ответственность:** Аналитика и метрики
-**Сущности:** Metric, AnalyticsReport
+**Responsibility:** Analytics and metrics
+**Entities:** Metric, AnalyticsReport
 **Use cases:** trackMetric, getAnalytics
 
 ### notes
-**Ответственность:** Система заметок/документации
-**Сущности:** Note, Document
+**Responsibility:** Notes and documentation system
+**Entities:** Note, Document
 **Use cases:** createNote, getNote, updateNote
 `;
   await fs.writeFile(path.join(archDir, 'domains.md'), domainsContent);
 
-  const flowsContent = `# Пользовательские и интеграционные потоки - Уровень 02
+  const flowsContent = `# User and Integration Flows - Level 02
 
-## Основной пользовательский поток
+## Main User Flow
 
-1. **Login** → Пользователь входит в систему
-   - Вход по email/password или OAuth
-   - Получение токена
+1. **Login** → User signs into the system
+   - Login via email/password or OAuth
+   - Token retrieval
 
-2. **Dashboard** → Пользователь видит основную панель
-   - Обзор статистики
-   - Быстрые действия
+2. **Dashboard** → User sees the main panel
+   - Statistics overview
+   - Quick actions
 
-3. **${answers.coreDomain}** → Работа с core-доменом
-   - создание ${answers.coreDomain}
-   - просмотр списка
-   - редактирование
-   - удаление
+3. **${answers.coreDomain}** → Work with core domain
+   - create ${answers.coreDomain}
+   - view list
+   - edit
+   - delete
 
-## Поток интеграций
+## Integration Flow
 
-1. **Подключение внешнего сервиса** → Пользователь подключает интеграцию
-   - Выбор сервиса (GitHub, GitLab, Telegram)
-   - Авторизация в сервисе
-   - Сохранение config
+1. **Connect External Service** → User connects an integration
+   - Choose service (GitHub, GitLab, Telegram)
+   - Authorize with the service
+   - Save config
 
-2. **Синхронизация данных** → Система синхронизирует данные
-   - Периодический pull данных
-   - Обработка изменений
-   - Сохранение в БД
+2. **Data Synchronization** → System syncs data
+   - Periodic data pull
+   - Change processing
+   - Save to database
 `;
   await fs.writeFile(path.join(archDir, 'flows.md'), flowsContent);
 
-  const dod02 = `# Definition of Done - Уровень 02 (Архитектура и дизайн)
+  const dod02 = `# Definition of Done - Level 02 (Architecture & Design)
 
-## Критерии завершения уровня 02:
-- [ ] domains.md заполнен со списком доменов
-- [ ] Для каждого домена описана ответственность
-- [ ] Сущности доменов перечислены
-- [ ] Use cases для доменов описаны (черновик)
-- [ ] flows.md содержит пользовательские потоки
-- [ ] flows.md содержит интеграционные потоки
-- [ ] Архитектура модульного монолита зафиксирована
+## Completion criteria for Level 02:
+- [ ] domains.md filled with domain list
+- [ ] Each domain has a described responsibility
+- [ ] Domain entities are listed
+- [ ] Use cases for domains are described (draft)
+- [ ] flows.md contains user flows
+- [ ] flows.md contains integration flows
+- [ ] Modular monolith architecture is documented
 `;
   await fs.writeFile(path.join(archDir, 'dod.md'), dod02);
 
   // 3. LEVELS.md
-  const levelsContent = `# Методология разработки - Уровни 01-06
+  const levelsContent = `# Development Methodology - Levels 01-06
 
-## Уровень 01 - Идея и контекст
-**Артефакты:**
-- docs/01-idea/brief.md - бриф с ответами на вопросы
+## Level 01 - Idea & Context
+**Artifacts:**
+- docs/01-idea/brief.md - brief with answers to questions
 - docs/01-idea/dod.md - Definition of Done
 
-**Цель:** Чётко описать проблему, ЦА, сценарии, цели, функции v1
+**Goal:** Clearly describe the problem, target audience, scenarios, goals, v1 features
 
-## Уровень 02 - Архитектура и дизайн
-**Артефакты:**
-- docs/02-arch/domains.md - список доменов, ответственность, сущности
-- docs/02-arch/flows.md - пользовательские и интеграционные потоки
-- docs/02-arch/dod.md - DoD уровня 02
+## Level 02 - Architecture & Design
+**Artifacts:**
+- docs/02-arch/domains.md - domain list, responsibilities, entities
+- docs/02-arch/flows.md - user and integration flows
+- docs/02-arch/dod.md - Level 02 DoD
 
-**Цель:** Зафиксировать архитектуру модульного монолита, домены, use cases
+**Goal:** Document modular monolith architecture, domains, use cases
 
-## Уровень 03 - Реализация (каркас)
-**Артефакты:**
-- docs/03-impl/dod.md - DoD уровня 03
-- docs/03-impl/commands.md - команды качества/релизов
+## Level 03 - Implementation (Skeleton)
+**Artifacts:**
+- docs/03-impl/dod.md - Level 03 DoD
+- docs/03-impl/commands.md - quality/release commands
 
-**Стек:** backend (Node.js + Express + Prisma), web (Next.js + React), ORM (Prisma), БД (Postgres)
+**Stack:** backend (Node.js + Hono/Express + Drizzle/Prisma), web (React + Vite), ORM (Drizzle/Prisma), DB (Postgres)
 
-**Цель:** Создать skeleton репозитория без бизнес-логики
+**Goal:** Create repository skeleton without business logic
 
-## Уровень 04 - Качество
-**Артефакты:**
-- docs/04-quality/task-dod.md - DoD для задачи
-- docs/04-quality/feature-dod.md - DoD для фичи
-- docs/04-quality/checklist-manual.md - ручной smoke-чеклист
+## Level 04 - Quality
+**Artifacts:**
+- docs/04-quality/task-dod.md - Task DoD
+- docs/04-quality/feature-dod.md - Feature DoD
+- docs/04-quality/checklist-manual.md - Manual smoke checklist
 
-**Стандарт:** Biome (линтер+форматтер), TypeScript strict, unit/интеграционные тесты
+**Standard:** Biome (linter+formatter), TypeScript strict, unit/integration tests
 
-**Цель:** Настроить стандарт качества и команды проверки
+**Goal:** Set up quality standards and verification commands
 
-## Уровень 05 - Релизы
-**Артефакты:**
-- docs/05-release/checklist.md - чеклист релиза
-- docs/05-release/release-flow.md - пошаговый flow релиза
+## Level 05 - Releases
+**Artifacts:**
+- docs/05-release/checklist.md - Release checklist
+- docs/05-release/release-flow.md - Step-by-step release flow
 - CHANGELOG.md, VERSION
 
-**Цель:** Настроить процесс релизов
+**Goal:** Set up release process
 
-## Уровень 06 - Деплой
-**Артефакты:**
-- docs/06-deploy/checklist.md - общий деплой-чеклист
-- docs/06-deploy/deploy-vps-docker.md - деплой через Docker/Compose
-- docs/06-deploy/deploy-vps-manual.md - деплой без Docker
+## Level 06 - Deploy
+**Artifacts:**
+- docs/06-deploy/checklist.md - General deploy checklist
+- docs/06-deploy/deploy-vps-docker.md - Deploy via Docker/Compose
+- docs/06-deploy/deploy-vps-manual.md - Deploy without Docker
 - docker-compose.example.yml, Dockerfile.example
 
-**База:** Деплой на VPS, Docker/Compose - дефолт
+**Default:** Deploy to VPS, Docker/Compose as default
 
-**Цель:** Настроить деплой
+**Goal:** Set up deployment
 `;
   await fs.writeFile(path.join(docsBase, 'LEVELS.md'), levelsContent);
 
-  // 4. Уровень 03 - Impl
+  // 4. Level 03 - Impl
   const implDir = path.join(docsBase, '03-impl');
   await fs.ensureDir(implDir);
 
-  const dod03 = `# Definition of Done - Уровень 03 (Реализация)
+  const dod03 = `# Definition of Done - Level 03 (Implementation)
 
-## Критерии завершения уровня 03:
-- [ ] Skeleton репозитория создан
-- [ ] backend/ каркас Node.js + Prisma
-- [ ] web/ минимальный Next.js проект
-- [ ] bot/ (если выбран формат) минимальный entrypoint
-- [ ] docs/ структура с LEVELS.md
-- [ ] scripts/ заготовочные скрипты
-- [ ] package.json с командами качества/релизов
+## Completion criteria for Level 03:
+- [ ] Repository skeleton created
+- [ ] backend/ Node.js + ORM scaffold
+- [ ] web/ minimal React + Vite project
+- [ ] bot/ (if format includes bot) minimal entry point
+- [ ] docs/ structure with LEVELS.md
+- [ ] scripts/ template scripts
+- [ ] package.json with quality/release commands
 - [ ] biome.json, tsconfig.base.json
 - [ ] .github/workflows/ci.yml
 `;
   await fs.writeFile(path.join(implDir, 'dod.md'), dod03);
 
-  const commandsContent = `- Команды качества:
-- \`pnpm lint\` - линтинг Biome
-- \`pnpm lint:fix\` - линтинг с автофиксом
-- \`pnpm typecheck\` - проверка типов
-- \`pnpm test\` - запуск тестов
+  const commandsContent = `## Quality Commands:
+- \`pnpm lint\` - Biome linting
+- \`pnpm lint:fix\` - Lint with auto-fix
+- \`pnpm typecheck\` - TypeScript type checking
+- \`pnpm test\` - Run tests
 - \`pnpm check\` - lint + typecheck + test
 - \`pnpm check:fix\` - lint:fix + typecheck + test
 - \`pnpm validate\` - lint + typecheck + test + build
 
-## Команды релизов:
-- \`pnpm build\` - сборка проекта
-- \`pnpm release:prep\` - validate перед релизом
-- \`pnpm release:tag\` - хук для создания git tag
+## Release Commands:
+- \`pnpm build\` - Build project
+- \`pnpm release:prep\` - Validate before release
+- \`pnpm release:tag\` - Create git tag hook
 `;
   await fs.writeFile(path.join(implDir, 'commands.md'), commandsContent);
 
-  // 5. Уровень 04 - Quality
+  // 5. Level 04 - Quality
   const qualityDir = path.join(docsBase, '04-quality');
   await fs.ensureDir(qualityDir);
 
   await fs.writeFile(
     path.join(qualityDir, 'task-dod.md'),
-    `# Definition of Done - Задача
+    `# Definition of Done - Task
 
-## Критерии завершения задачи:
-- [ ] Код написан и соответствует стандартам
-- [ ] TypeScript strict - без ошибок
-- [ ] Biome lint - без ошибок
-- [ ] Unit тесты написаны и проходят
-- [ ] Интеграционные тесты (если нужны) написаны и проходят
-- [ ] Код закоммичен
-- [ ] Pull request создан
-- [ ] Code review пройден
+## Task completion criteria:
+- [ ] Code is written and meets standards
+- [ ] TypeScript strict - no errors
+- [ ] Biome lint - no errors
+- [ ] Unit tests are written and passing
+- [ ] Integration tests (if needed) are written and passing
+- [ ] Code is committed
+- [ ] Pull request is created
+- [ ] Code review is completed
 `,
   );
 
   await fs.writeFile(
     path.join(qualityDir, 'feature-dod.md'),
-    `# Definition of Done - Фича
+    `# Definition of Done - Feature
 
-## Критерии завершения фичи:
-- [ ] Все задачи фичи завершены (DoD задачи пройден)
-- [ ] Unit тесты покрытие >= 80%
-- [ ] Интеграционные тесты проходят
-- [ ] Smoke тесты (checklist-manual.md) пройдены
-- [ ] Документация обновлена
-- [ ] CHANGELOG обновлён
-- [ ] Фича в master/main branch
+## Feature completion criteria:
+- [ ] All feature tasks are completed (task DoD passed)
+- [ ] Unit test coverage >= 80%
+- [ ] Integration tests pass
+- [ ] Smoke tests (checklist-manual.md) passed
+- [ ] Documentation is updated
+- [ ] CHANGELOG is updated
+- [ ] Feature is in master/main branch
 `,
   );
 
   await fs.writeFile(
     path.join(qualityDir, 'checklist-manual.md'),
-    `# Ручной Smoke-чеклист
+    `# Manual Smoke Checklist
 
-## Перед релизом пройти:
-- [ ] Приложение запускается (pnpm dev)
-- [ ] Login страница работает
-- [ ] Dashboard страница работает
-- [ ] Core-домен работает (create, read, update, delete)
-- [ ] TypeScript typecheck проходит (pnpm typecheck)
-- [ ] Lint проходит (pnpm lint)
-- [ ] Тесты проходят (pnpm test)
-- [ ] Build проходит (pnpm build)
+## Run before release:
+- [ ] Application starts (pnpm dev)
+- [ ] Login page works
+- [ ] Dashboard page works
+- [ ] Core domain works (create, read, update, delete)
+- [ ] TypeScript typecheck passes (pnpm typecheck)
+- [ ] Lint passes (pnpm lint)
+- [ ] Tests pass (pnpm test)
+- [ ] Build passes (pnpm build)
 `,
   );
 
-  // 6. Уровень 05 - Release
+  // 6. Level 05 - Release
   const releaseDir = path.join(docsBase, '05-release');
   await fs.ensureDir(releaseDir);
 
   await fs.writeFile(
     path.join(releaseDir, 'checklist.md'),
-    `# Чеклист релиза
+    `# Release Checklist
 
-## Перед release:prep:
-- [ ] Все фичи завершены (DoD фичи пройден)
-- [ ] Smoke тесты пройдены
-- [ ] CHANGELOG обновлён
-- [ ] VERSION обновлён
+## Before release:prep:
+- [ ] All features are completed (feature DoD passed)
+- [ ] Smoke tests passed
+- [ ] CHANGELOG is updated
+- [ ] VERSION is updated
 
-## После release:prep:
-- [ ] pnpm validate проходит
-- [ ] Git tag создан (release:tag)
-- [ ] Релиз в npm/Vercel/другой платформе
+## After release:prep:
+- [ ] pnpm validate passes
+- [ ] Git tag is created (release:tag)
+- [ ] Release published to npm/Vercel/other platform
 `,
   );
 
   await fs.writeFile(
     path.join(releaseDir, 'release-flow.md'),
-    `# Flow релиза
+    `# Release Flow
 
 1. **release:prep** → pnpm validate
    - lint + typecheck + test + build
 
 2. **release:tag** → git tag v<VERSION>
 
-3. **Publish** → Публикация в npm/Vercel
+3. **Publish** → Publish to npm/Vercel
 
-4. **CHANGELOG** → Обновить CHANGELOG.md
+4. **CHANGELOG** → Update CHANGELOG.md
 `,
   );
 
-  // 7. Уровень 06 - Deploy
+  // 7. Level 06 - Deploy
   const deployDir = path.join(docsBase, '06-deploy');
   await fs.ensureDir(deployDir);
 
   await fs.writeFile(
     path.join(deployDir, 'checklist.md'),
-    `# Деплой-чеклист
+    `# Deploy Checklist
 
-## Общие:
-- [ ] RELEASE checklist пройден
-- [ ] Docker images построены (если useDocker)
-- [ ] VPS готов (SSH доступ, ports открыты)
+## General:
+- [ ] RELEASE checklist passed
+- [ ] Docker images built (if using Docker)
+- [ ] VPS ready (SSH access, ports open)
 
 ## Docker/Compose:
-- [ ] docker-compose.yml создан
-- [ ] DB миграции выполнены
-- [ ] Приложения запускаются
+- [ ] docker-compose.yml created
+- [ ] DB migrations run
+- [ ] Applications are running
 
 ## Manual:
-- [ ] Node.js установлен на VPS
-- [ ] PM2/systemd настроен
-- [ ] Postgres установлен
-- [ ] Migrations выполнены
+- [ ] Node.js installed on VPS
+- [ ] PM2/systemd configured
+- [ ] Postgres installed
+- [ ] Migrations run
 `,
   );
 
-  const dockerDeployContent = `# Деплой через Docker/Compose на VPS
+  const dockerDeployContent = `# Deploy via Docker/Compose to VPS
 
-## Шаги:
-1. Скопировать docker-compose.yml на VPS
+## Steps:
+1. Copy docker-compose.yml to VPS
 2. \`docker-compose up -d\`
-3. \`docker-compose ps\` - проверить здоровье
-4. \`docker-compose logs\` - посмотреть логи
-5. DB миграции: \`docker-compose exec backend pnpm db:migrate\`
+3. \`docker-compose ps\` - check health
+4. \`docker-compose logs\` - check logs
+5. DB migrations: \`docker-compose exec backend pnpm db:migrate\`
 `;
   await fs.writeFile(path.join(deployDir, 'deploy-vps-docker.md'), dockerDeployContent);
 
-  const manualDeployContent = `# Деплой без Docker на VPS
+  const manualDeployContent = `# Deploy without Docker to VPS
 
-## Шаги:
-1. Установить Node.js на VPS
-2. Установить PM2: \`npm install -g pm2\`
-3. Скопировать проект на VPS
+## Steps:
+1. Install Node.js on VPS
+2. Install PM2: \`npm install -g pm2\`
+3. Copy project to VPS
 4. \`pnpm install\`
 5. \`pnpm build\`
-6. DB миграции: \`pnpm db:migrate\`
+6. DB migrations: \`pnpm db:migrate\`
 7. \`pm2 start dist/server.js --name app\`
 8. \`pm2 save\`
-9. \`pm2 startup\` - настроить systemd
+9. \`pm2 startup\` - configure systemd
 `;
   await fs.writeFile(path.join(deployDir, 'deploy-vps-manual.md'), manualDeployContent);
 
-  console.log('   → docs/созданы');
+  console.log('   → docs/ created');
 }
