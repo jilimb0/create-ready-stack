@@ -1,7 +1,7 @@
 # create-ready-stack
 
 [![npm version](https://img.shields.io/npm/v/create-ready-stack)](https://www.npmjs.com/package/create-ready-stack)
-[![CI](https://github.com/anomalyco/Methodology/actions/workflows/ci.yml/badge.svg)](https://github.com/anomalyco/Methodology/actions/workflows/ci.yml)
+[![CI](https://github.com/jilimb0/create-ready-stack/actions/workflows/ci.yml/badge.svg)](https://github.com/jilimb0/create-ready-stack/actions/workflows/ci.yml)
 
 Scaffold a production-ready full-stack project with your proven stack:
 
