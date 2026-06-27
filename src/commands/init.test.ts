@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import os from 'node:os';
+import path from 'node:path';
 import fs from 'fs-extra';
-import path from 'path';
-import os from 'os';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mockAnswers } = vi.hoisted(() => {
   let calls: Record<string, unknown>[] = [];
@@ -157,12 +157,18 @@ describe('init command handler', () => {
     const { initCommand } = await import('./init.js');
     await initCommand.handler();
 
-    const brief = await fs.readFile(path.join(tmpDir, 'test-project', 'docs', '01-idea', 'brief.md'), 'utf-8');
+    const brief = await fs.readFile(
+      path.join(tmpDir, 'test-project', 'docs', '01-idea', 'brief.md'),
+      'utf-8',
+    );
     expect(brief).toContain('Test Project');
     expect(brief).toContain('Test problem');
     expect(brief).toContain('Test audience');
 
-    const domains = await fs.readFile(path.join(tmpDir, 'test-project', 'docs', '02-arch', 'domains.md'), 'utf-8');
+    const domains = await fs.readFile(
+      path.join(tmpDir, 'test-project', 'docs', '02-arch', 'domains.md'),
+      'utf-8',
+    );
     expect(domains).toContain('items');
   });
 
@@ -175,7 +181,11 @@ describe('init command handler', () => {
       ...process,
       cwd: () => tmpDir,
     });
-    mockAnswers.set([{ ...baseAnswers, projectName: 'existing-project' }, baseAnswers, baseAnswers]);
+    mockAnswers.set([
+      { ...baseAnswers, projectName: 'existing-project' },
+      baseAnswers,
+      baseAnswers,
+    ]);
     const { initCommand } = await import('./init.js');
     await initCommand.handler(true);
 

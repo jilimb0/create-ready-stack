@@ -1,11 +1,11 @@
-import crypto from 'crypto';
-import inquirer from 'inquirer';
+import crypto from 'node:crypto';
+import * as path from 'node:path';
 import * as fs from 'fs-extra';
-import * as path from 'path';
-import { ProjectAnswers } from '../types/project.js';
+import inquirer from 'inquirer';
 import { generateDocs } from '../generators/docs.js';
 import { generateMonorepo } from '../generators/monorepo.js';
 import { generatePackageJson } from '../generators/packageJson.js';
+import type { ProjectAnswers } from '../types/project.js';
 import { isDirectoryEmpty } from '../utils/fileSystem.js';
 
 const QUESTION_BLOCKS = {
@@ -14,7 +14,9 @@ const QUESTION_BLOCKS = {
       type: 'input',
       name: 'projectName',
       message: 'Project name (slug, e.g. my-project):',
-      validate: (input: string) => /^[a-z][a-z0-9-]*$/.test(input) || 'Must start with a letter and contain only letters, digits, hyphens',
+      validate: (input: string) =>
+        /^[a-z][a-z0-9-]*$/.test(input) ||
+        'Must start with a letter and contain only letters, digits, hyphens',
     },
     {
       type: 'input',
@@ -87,7 +89,11 @@ const QUESTION_BLOCKS = {
   ],
 
   level02: [
-    { type: 'input', name: 'coreDomain', message: 'Core domain name (e.g. repos, projects, tasks):' },
+    {
+      type: 'input',
+      name: 'coreDomain',
+      message: 'Core domain name (e.g. repos, projects, tasks):',
+    },
   ],
 };
 
@@ -113,7 +119,12 @@ export const initCommand = {
 
     if (!force && !isDirectoryEmpty(projectDir)) {
       const confirm = await inquirer.prompt([
-        { type: 'confirm', name: 'proceed', message: `Folder "${projectName}" is not empty. Continue?`, default: false },
+        {
+          type: 'confirm',
+          name: 'proceed',
+          message: `Folder "${projectName}" is not empty. Continue?`,
+          default: false,
+        },
       ]);
       if (!confirm.proceed) {
         console.log('\n Project creation cancelled.');
@@ -156,7 +167,9 @@ export const initCommand = {
     console.log('\n Generating project...\n');
 
     await generateDocs(projectDir, answers);
-    console.log('   \u2713 docs/ created (LEVELS, 01-idea, 02-arch, 03-impl, 04-quality, 05-release, 06-deploy)');
+    console.log(
+      '   \u2713 docs/ created (LEVELS, 01-idea, 02-arch, 03-impl, 04-quality, 05-release, 06-deploy)',
+    );
 
     await generateMonorepo(projectDir, answers);
     console.log('   \u2713 Project skeleton created');

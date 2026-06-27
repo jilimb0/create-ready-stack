@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import os from 'node:os';
+import path from 'node:path';
 import fs from 'fs-extra';
-import path from 'path';
-import os from 'os';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ProjectAnswers } from '../types/project.js';
 import { generateBackend } from './backend.js';
 
@@ -97,22 +97,32 @@ describe('generateBackend', () => {
     const configExists = await fs.pathExists(path.join(tmpDir, 'backend', 'drizzle.config.ts'));
     expect(configExists).toBe(true);
     const config = await fs.readFile(path.join(tmpDir, 'backend', 'drizzle.config.ts'), 'utf-8');
-    expect(config).toContain('schema: \'./src/db/schema/*\'');
+    expect(config).toContain("schema: './src/db/schema/*'");
   });
 
   it('creates prisma schema when using prisma', async () => {
     await generateBackend(tmpDir, { ...baseAnswers, orm: 'prisma' });
-    const schemaExists = await fs.pathExists(path.join(tmpDir, 'backend', 'prisma', 'schema.prisma'));
+    const schemaExists = await fs.pathExists(
+      path.join(tmpDir, 'backend', 'prisma', 'schema.prisma'),
+    );
     expect(schemaExists).toBe(true);
-    const schema = await fs.readFile(path.join(tmpDir, 'backend', 'prisma', 'schema.prisma'), 'utf-8');
+    const schema = await fs.readFile(
+      path.join(tmpDir, 'backend', 'prisma', 'schema.prisma'),
+      'utf-8',
+    );
     expect(schema).toContain('model User');
   });
 
   it('creates drizzle schema when using drizzle', async () => {
     await generateBackend(tmpDir, baseAnswers);
-    const usersExists = await fs.pathExists(path.join(tmpDir, 'backend', 'src', 'db', 'schema', 'users.ts'));
+    const usersExists = await fs.pathExists(
+      path.join(tmpDir, 'backend', 'src', 'db', 'schema', 'users.ts'),
+    );
     expect(usersExists).toBe(true);
-    const users = await fs.readFile(path.join(tmpDir, 'backend', 'src', 'db', 'schema', 'users.ts'), 'utf-8');
+    const users = await fs.readFile(
+      path.join(tmpDir, 'backend', 'src', 'db', 'schema', 'users.ts'),
+      'utf-8',
+    );
     expect(users).toContain('export const users = pgTable');
   });
 
@@ -121,8 +131,8 @@ describe('generateBackend', () => {
     const indexExists = await fs.pathExists(path.join(tmpDir, 'backend', 'src', 'index.ts'));
     expect(indexExists).toBe(true);
     const index = await fs.readFile(path.join(tmpDir, 'backend', 'src', 'index.ts'), 'utf-8');
-    expect(index).toContain('import { serve } from \'@hono/node-server\'');
-    expect(index).toContain('import { Hono } from \'hono\'');
+    expect(index).toContain("import { serve } from '@hono/node-server'");
+    expect(index).toContain("import { Hono } from 'hono'");
   });
 
   it('creates Express index file when using express', async () => {
@@ -131,7 +141,7 @@ describe('generateBackend', () => {
     expect(indexExists).toBe(true);
     const index = await fs.readFile(path.join(tmpDir, 'backend', 'src', 'index.ts'), 'utf-8');
     expect(index).toContain("import express from 'express';");
-    expect(index).toContain("const app = express();");
+    expect(index).toContain('const app = express();');
   });
 
   it('creates auth file when multiUser is true', async () => {
@@ -139,8 +149,8 @@ describe('generateBackend', () => {
     const authExists = await fs.pathExists(path.join(tmpDir, 'backend', 'src', 'auth.ts'));
     expect(authExists).toBe(true);
     const auth = await fs.readFile(path.join(tmpDir, 'backend', 'src', 'auth.ts'), 'utf-8');
-    expect(auth).toContain('import { z } from \'zod\'');
-    expect(auth).toContain('import { SignJWT, jwtVerify } from \'jose\'');
+    expect(auth).toContain("import { z } from 'zod'");
+    expect(auth).toContain("import { SignJWT, jwtVerify } from 'jose'");
   });
 
   it('does not create auth file when multiUser is false', async () => {
@@ -153,7 +163,9 @@ describe('generateBackend', () => {
     await generateBackend(tmpDir, baseAnswers);
     const appTestExists = await fs.pathExists(path.join(tmpDir, 'backend', 'src', 'app.test.ts'));
     expect(appTestExists).toBe(true);
-    const vitestConfigExists = await fs.pathExists(path.join(tmpDir, 'backend', 'vitest.config.ts'));
+    const vitestConfigExists = await fs.pathExists(
+      path.join(tmpDir, 'backend', 'vitest.config.ts'),
+    );
     expect(vitestConfigExists).toBe(true);
     const dockerfileExists = await fs.pathExists(path.join(tmpDir, 'backend', 'Dockerfile'));
     expect(dockerfileExists).toBe(true);

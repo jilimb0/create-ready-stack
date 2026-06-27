@@ -1,12 +1,14 @@
+import * as path from 'node:path';
 import fs from 'fs-extra';
-import * as path from 'path';
 import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateBot(cwd: string, answers: ProjectAnswers) {
   const dir = path.join(cwd, 'bot');
   await fs.ensureDir(path.join(dir, 'src'));
 
-  await fs.writeFile(path.join(dir, 'package.json'), `{
+  await fs.writeFile(
+    path.join(dir, 'package.json'),
+    `{
   "name": "@${answers.projectName}/bot",
   "version": "0.1.0",
   "private": true,
@@ -27,15 +29,25 @@ export async function generateBot(cwd: string, answers: ProjectAnswers) {
     "tsx": "^4.19.0"
   }
 }
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'tsconfig.json'), JSON.stringify({
-    extends: '../tsconfig.base.json',
-    compilerOptions: { outDir: './dist', rootDir: './src', noEmit: false },
-    include: ['src'],
-  }, null, 2));
+  await fs.writeFile(
+    path.join(dir, 'tsconfig.json'),
+    JSON.stringify(
+      {
+        extends: '../tsconfig.base.json',
+        compilerOptions: { outDir: './dist', rootDir: './src', noEmit: false },
+        include: ['src'],
+      },
+      null,
+      2,
+    ),
+  );
 
-  await fs.writeFile(path.join(dir, 'src/index.ts'), `import { Bot, Router, session } from '@tgwrapper/core';
+  await fs.writeFile(
+    path.join(dir, 'src/index.ts'),
+    `import { Bot, Router, session } from '@tgwrapper/core';
 
 const bot = new Bot(process.env.TELEGRAM_TOKEN!);
 
@@ -62,13 +74,17 @@ router.on('about', IDLE, async (ctx) => {
 
 bot.start();
 console.log('Bot running...');
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'Dockerfile'), `FROM node:26-alpine
+  await fs.writeFile(
+    path.join(dir, 'Dockerfile'),
+    `FROM node:26-alpine
 WORKDIR /app
 COPY package.json ./
 COPY src ./src
 RUN npm install && npm run build
 CMD ["node", "dist/index.js"]
-`);
+`,
+  );
 }

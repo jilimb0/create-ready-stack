@@ -1,9 +1,9 @@
 import type { ProjectAnswers } from '../types/project.js';
 import { generateBackend } from './backend.js';
-import { generateWeb } from './web.js';
 import { generateBot } from './bot.js';
-import { generateDocker } from './docker.js';
 import { generateCI } from './ci.js';
+import { generateDocker } from './docker.js';
+import { generateWeb } from './web.js';
 
 export async function generateMonorepo(cwd: string, answers: ProjectAnswers) {
   await generateBackend(cwd, answers);
@@ -13,4 +13,4 @@ export async function generateMonorepo(cwd: string, answers: ProjectAnswers) {
   await generateCI(cwd, answers);
 }
 
-export { generateBackend, generateWeb, generateBot, generateDocker, generateCI };
+export { generateBackend, generateBot, generateCI, generateDocker, generateWeb };

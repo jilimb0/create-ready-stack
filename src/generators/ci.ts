@@ -1,12 +1,14 @@
+import * as path from 'node:path';
 import fs from 'fs-extra';
-import * as path from 'path';
 import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateCI(cwd: string, answers: ProjectAnswers) {
   const workflowsDir = path.join(cwd, '.github', 'workflows');
   await fs.ensureDir(workflowsDir);
 
-  await fs.writeFile(path.join(workflowsDir, 'ci.yml'), `name: CI
+  await fs.writeFile(
+    path.join(workflowsDir, 'ci.yml'),
+    `name: CI
 
 on:
   push:
@@ -49,5 +51,6 @@ jobs:
       - run: pnpm test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/${answers.projectName}
-`);
+`,
+  );
 }

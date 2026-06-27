@@ -1,5 +1,5 @@
+import * as path from 'node:path';
 import fs from 'fs-extra';
-import * as path from 'path';
 import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateDocker(cwd: string, answers: ProjectAnswers) {
@@ -11,7 +11,7 @@ export async function generateDocker(cwd: string, answers: ProjectAnswers) {
         environment: {
           POSTGRES_USER: '${POSTGRES_USER:-postgres}',
           POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-postgres}',
-          POSTGRES_DB: '${POSTGRES_DB:-' + answers.projectName + '}',
+          POSTGRES_DB: `\${POSTGRES_DB:-${answers.projectName}}`,
         },
         volumes: ['postgres_data:/var/lib/postgresql/data'],
         restart: 'unless-stopped',
@@ -21,7 +21,10 @@ export async function generateDocker(cwd: string, answers: ProjectAnswers) {
         ports: ['3000:3000'],
         environment: {
           NODE_ENV: 'production',
-          DATABASE_URL: 'postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-' + answers.projectName + '}',
+          DATABASE_URL:
+            'postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-' +
+            answers.projectName +
+            '}',
         },
         depends_on: ['db'],
         restart: 'unless-stopped',

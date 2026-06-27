@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import os from 'node:os';
+import path from 'node:path';
 import fs from 'fs-extra';
-import path from 'path';
-import os from 'os';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ProjectAnswers } from '../types/project.js';
 import { generateWeb } from './web.js';
 
@@ -72,39 +72,43 @@ describe('generateWeb', () => {
   it('generates src/main.tsx', async () => {
     await generateWeb(tmpDir, baseAnswers);
     const mainTsx = await fs.readFile(path.join(tmpDir, 'web', 'src', 'main.tsx'), 'utf-8');
-    expect(mainTsx).toContain('import { StrictMode } from \'react\'');
-    expect(mainTsx).toContain('import { QueryClient, QueryClientProvider } from \'@tanstack/react-query\'');
-    expect(mainTsx).toContain('createRoot(document.getElementById(\'root\')!).render(');
+    expect(mainTsx).toContain("import { StrictMode } from 'react'");
+    expect(mainTsx).toContain(
+      "import { QueryClient, QueryClientProvider } from '@tanstack/react-query'",
+    );
+    expect(mainTsx).toContain("createRoot(document.getElementById('root')!).render(");
   });
 
   it('generates src/App.tsx', async () => {
     await generateWeb(tmpDir, baseAnswers);
     const appTsx = await fs.readFile(path.join(tmpDir, 'web', 'src', 'App.tsx'), 'utf-8');
-    expect(appTsx).toContain('import { Routes, Route } from \'react-router-dom\'');
+    expect(appTsx).toContain("import { Routes, Route } from 'react-router-dom'");
     expect(appTsx).toContain('<h1>Test Project</h1>');
   });
 
   it('generates src/api.ts', async () => {
     await generateWeb(tmpDir, baseAnswers);
     const apiTs = await fs.readFile(path.join(tmpDir, 'web', 'src', 'api.ts'), 'utf-8');
-    expect(apiTs).toContain('const BASE = import.meta.env.VITE_API_URL ?? \'http://localhost:3000\'');
-    expect(apiTs).toContain('export async function api<T>(path: string, init?: RequestInit): Promise<T>');
-    expect(apiTs).toContain('headers: { \'Content-Type\': \'application/json\', ...init?.headers }');
+    expect(apiTs).toContain("const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'");
+    expect(apiTs).toContain(
+      'export async function api<T>(path: string, init?: RequestInit): Promise<T>',
+    );
+    expect(apiTs).toContain("headers: { 'Content-Type': 'application/json', ...init?.headers }");
   });
 
   it('generates vite.config.ts', async () => {
     await generateWeb(tmpDir, baseAnswers);
     const viteConfig = await fs.readFile(path.join(tmpDir, 'web', 'vite.config.ts'), 'utf-8');
-    expect(viteConfig).toContain('import { defineConfig } from \'vite\'');
+    expect(viteConfig).toContain("import { defineConfig } from 'vite'");
     expect(viteConfig).toContain('plugins: [react()]');
   });
 
   it('generates src/App.test.tsx', async () => {
     await generateWeb(tmpDir, baseAnswers);
     const appTest = await fs.readFile(path.join(tmpDir, 'web', 'src', 'App.test.tsx'), 'utf-8');
-    expect(appTest).toContain('import { describe, it, expect } from \'vitest\'');
+    expect(appTest).toContain("import { describe, it, expect } from 'vitest'");
     expect(appTest).toContain('render(<MemoryRouter><App /></MemoryRouter>);');
-    expect(appTest).toContain('expect(screen.getByText(\'Test Project\')).toBeInTheDocument();');
+    expect(appTest).toContain("expect(screen.getByText('Test Project')).toBeInTheDocument();");
   });
 
   it('generates tsconfig.json', async () => {
@@ -125,7 +129,7 @@ describe('generateWeb', () => {
   it('creates vitest.config.ts', async () => {
     await generateWeb(tmpDir, baseAnswers);
     const vitestConfig = await fs.readFile(path.join(tmpDir, 'web', 'vitest.config.ts'), 'utf-8');
-    expect(vitestConfig).toContain('import { defineConfig } from \'vitest/config\'');
-    expect(vitestConfig).toContain('environment: \'jsdom\'');
+    expect(vitestConfig).toContain("import { defineConfig } from 'vitest/config'");
+    expect(vitestConfig).toContain("environment: 'jsdom'");
   });
 });

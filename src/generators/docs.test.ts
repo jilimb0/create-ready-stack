@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import os from 'node:os';
+import path from 'node:path';
 import fs from 'fs-extra';
-import path from 'path';
-import os from 'os';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ProjectAnswers } from '../types/project.js';
 import { generateDocs } from './docs.js';
 
@@ -92,13 +92,18 @@ describe('generateDocs', () => {
       '06-deploy/deploy-vps-manual.md',
     ];
     for (const f of files) {
-      expect(await fs.pathExists(path.join(tmpDir, 'docs', f)), `docs/${f} should exist`).toBe(true);
+      expect(await fs.pathExists(path.join(tmpDir, 'docs', f)), `docs/${f} should exist`).toBe(
+        true,
+      );
     }
   });
 
   it('creates commands.md with quality commands', async () => {
     await generateDocs(tmpDir, defaultAnswers);
-    const commands = await fs.readFile(path.join(tmpDir, 'docs', '03-impl', 'commands.md'), 'utf-8');
+    const commands = await fs.readFile(
+      path.join(tmpDir, 'docs', '03-impl', 'commands.md'),
+      'utf-8',
+    );
     expect(commands).toContain('pnpm lint');
     expect(commands).toContain('pnpm typecheck');
     expect(commands).toContain('pnpm test');

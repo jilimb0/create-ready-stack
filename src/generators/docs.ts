@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
+import * as path from 'node:path';
 import fs from 'fs-extra';
-import * as path from 'path';
-import { ProjectAnswers } from '../types/project.js';
+import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateDocs(cwd: string, answers: ProjectAnswers) {
   const docsBase = path.join(cwd, 'docs');
@@ -76,7 +76,7 @@ ${answers.criticalRisk}
   const archDir = path.join(docsBase, '02-arch');
   await fs.ensureDir(archDir);
 
-  const hasUsers = answers.multiUser;
+  const _hasUsers = answers.multiUser;
   const domainsContent = `# Домены - Уровень 02 (Архитектура и дизайн)
 
 ## Core-домен: ${answers.coreDomain}
@@ -262,7 +262,9 @@ ${answers.criticalRisk}
   const qualityDir = path.join(docsBase, '04-quality');
   await fs.ensureDir(qualityDir);
 
-  await fs.writeFile(path.join(qualityDir, 'task-dod.md'), `# Definition of Done - Задача
+  await fs.writeFile(
+    path.join(qualityDir, 'task-dod.md'),
+    `# Definition of Done - Задача
 
 ## Критерии завершения задачи:
 - [ ] Код написан и соответствует стандартам
@@ -273,9 +275,12 @@ ${answers.criticalRisk}
 - [ ] Код закоммичен
 - [ ] Pull request создан
 - [ ] Code review пройден
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(qualityDir, 'feature-dod.md'), `# Definition of Done - Фича
+  await fs.writeFile(
+    path.join(qualityDir, 'feature-dod.md'),
+    `# Definition of Done - Фича
 
 ## Критерии завершения фичи:
 - [ ] Все задачи фичи завершены (DoD задачи пройден)
@@ -285,9 +290,12 @@ ${answers.criticalRisk}
 - [ ] Документация обновлена
 - [ ] CHANGELOG обновлён
 - [ ] Фича в master/main branch
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(qualityDir, 'checklist-manual.md'), `# Ручной Smoke-чеклист
+  await fs.writeFile(
+    path.join(qualityDir, 'checklist-manual.md'),
+    `# Ручной Smoke-чеклист
 
 ## Перед релизом пройти:
 - [ ] Приложение запускается (pnpm dev)
@@ -298,13 +306,16 @@ ${answers.criticalRisk}
 - [ ] Lint проходит (pnpm lint)
 - [ ] Тесты проходят (pnpm test)
 - [ ] Build проходит (pnpm build)
-`);
+`,
+  );
 
   // 6. Уровень 05 - Release
   const releaseDir = path.join(docsBase, '05-release');
   await fs.ensureDir(releaseDir);
 
-  await fs.writeFile(path.join(releaseDir, 'checklist.md'), `# Чеклист релиза
+  await fs.writeFile(
+    path.join(releaseDir, 'checklist.md'),
+    `# Чеклист релиза
 
 ## Перед release:prep:
 - [ ] Все фичи завершены (DoD фичи пройден)
@@ -316,9 +327,12 @@ ${answers.criticalRisk}
 - [ ] pnpm validate проходит
 - [ ] Git tag создан (release:tag)
 - [ ] Релиз в npm/Vercel/другой платформе
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(releaseDir, 'release-flow.md'), `# Flow релиза
+  await fs.writeFile(
+    path.join(releaseDir, 'release-flow.md'),
+    `# Flow релиза
 
 1. **release:prep** → pnpm validate
    - lint + typecheck + test + build
@@ -328,13 +342,16 @@ ${answers.criticalRisk}
 3. **Publish** → Публикация в npm/Vercel
 
 4. **CHANGELOG** → Обновить CHANGELOG.md
-`);
+`,
+  );
 
   // 7. Уровень 06 - Deploy
   const deployDir = path.join(docsBase, '06-deploy');
   await fs.ensureDir(deployDir);
 
-  await fs.writeFile(path.join(deployDir, 'checklist.md'), `# Деплой-чеклист
+  await fs.writeFile(
+    path.join(deployDir, 'checklist.md'),
+    `# Деплой-чеклист
 
 ## Общие:
 - [ ] RELEASE checklist пройден
@@ -351,7 +368,8 @@ ${answers.criticalRisk}
 - [ ] PM2/systemd настроен
 - [ ] Postgres установлен
 - [ ] Migrations выполнены
-`);
+`,
+  );
 
   const dockerDeployContent = `# Деплой через Docker/Compose на VPS
 

@@ -1,5 +1,5 @@
+import * as path from 'node:path';
 import fs from 'fs-extra';
-import * as path from 'path';
 import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateWeb(cwd: string, answers: ProjectAnswers) {
@@ -7,11 +7,11 @@ export async function generateWeb(cwd: string, answers: ProjectAnswers) {
   await fs.ensureDir(path.join(dir, 'src'));
   await fs.ensureDir(path.join(dir, 'public'));
 
-  const uilibDep = answers.useUILibrary
-    ? ',\n    "@ui-construction-library/core": "^0.1.0"'
-    : '';
+  const uilibDep = answers.useUILibrary ? ',\n    "@ui-construction-library/core": "^0.1.0"' : '';
 
-  await fs.writeFile(path.join(dir, 'package.json'), `{
+  await fs.writeFile(
+    path.join(dir, 'package.json'),
+    `{
   "name": "@${answers.projectName}/web",
   "version": "0.1.0",
   "private": true,
@@ -42,9 +42,12 @@ export async function generateWeb(cwd: string, answers: ProjectAnswers) {
     "jsdom": "^26.0.0"
   }
 }
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'index.html'), `<!doctype html>
+  await fs.writeFile(
+    path.join(dir, 'index.html'),
+    `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -56,9 +59,12 @@ export async function generateWeb(cwd: string, answers: ProjectAnswers) {
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'src/main.tsx'), `import { StrictMode } from 'react';
+  await fs.writeFile(
+    path.join(dir, 'src/main.tsx'),
+    `import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -75,9 +81,12 @@ createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </StrictMode>,
 );
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'src/App.tsx'), `import { Routes, Route } from 'react-router-dom';
+  await fs.writeFile(
+    path.join(dir, 'src/App.tsx'),
+    `import { Routes, Route } from 'react-router-dom';
 
 export default function App() {
   return (
@@ -100,9 +109,12 @@ function Home() {
 function Dashboard() {
   return <h1>Dashboard</h1>;
 }
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'src/api.ts'), `const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+  await fs.writeFile(
+    path.join(dir, 'src/api.ts'),
+    `const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(\`\${BASE}\${path}\`, {
@@ -112,40 +124,63 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) throw new Error(\`API error: \${res.status}\`);
   return res.json();
 }
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'vite.config.ts'), `import { defineConfig } from 'vite';
+  await fs.writeFile(
+    path.join(dir, 'vite.config.ts'),
+    `import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
   server: { port: 5173, proxy: { '/api': 'http://localhost:3000' } },
 });
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'tsconfig.json'), JSON.stringify({
-    extends: '../tsconfig.base.json',
-    compilerOptions: { jsx: 'react-jsx', noEmit: true },
-    include: ['src'],
-    references: [{ path: './tsconfig.node.json' }],
-  }, null, 2));
+  await fs.writeFile(
+    path.join(dir, 'tsconfig.json'),
+    JSON.stringify(
+      {
+        extends: '../tsconfig.base.json',
+        compilerOptions: { jsx: 'react-jsx', noEmit: true },
+        include: ['src'],
+        references: [{ path: './tsconfig.node.json' }],
+      },
+      null,
+      2,
+    ),
+  );
 
-  await fs.writeFile(path.join(dir, 'tsconfig.node.json'), JSON.stringify({
-    extends: '../tsconfig.base.json',
-    compilerOptions: { noEmit: true },
-    include: ['vite.config.ts'],
-  }, null, 2));
+  await fs.writeFile(
+    path.join(dir, 'tsconfig.node.json'),
+    JSON.stringify(
+      {
+        extends: '../tsconfig.base.json',
+        compilerOptions: { noEmit: true },
+        include: ['vite.config.ts'],
+      },
+      null,
+      2,
+    ),
+  );
 
-  await fs.writeFile(path.join(dir, 'vitest.config.ts'), `import { defineConfig } from 'vitest/config';
+  await fs.writeFile(
+    path.join(dir, 'vitest.config.ts'),
+    `import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
   test: { globals: true, environment: 'jsdom' },
 });
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'src/App.test.tsx'), `import { describe, it, expect } from 'vitest';
+  await fs.writeFile(
+    path.join(dir, 'src/App.test.tsx'),
+    `import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
@@ -156,9 +191,12 @@ describe('App', () => {
     expect(screen.getByText('${answers.projectTitle}')).toBeInTheDocument();
   });
 });
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'Dockerfile'), `FROM node:26-alpine AS builder
+  await fs.writeFile(
+    path.join(dir, 'Dockerfile'),
+    `FROM node:26-alpine AS builder
 WORKDIR /app
 COPY package.json ./
 COPY . ./
@@ -169,5 +207,6 @@ FROM nginx:alpine AS runtime
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
-`);
+`,
+  );
 }

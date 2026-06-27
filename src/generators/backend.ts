@@ -1,5 +1,5 @@
+import * as path from 'node:path';
 import fs from 'fs-extra';
-import * as path from 'path';
 import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateBackend(cwd: string, answers: ProjectAnswers) {
@@ -9,7 +9,8 @@ export async function generateBackend(cwd: string, answers: ProjectAnswers) {
   const isHono = answers.backendFramework === 'hono';
   const isDrizzle = answers.orm === 'drizzle';
 
-  const pkg = isHono ? `{
+  const pkg = isHono
+    ? `{
   "name": "@${answers.projectName}/backend",
   "version": "0.1.0",
   "private": true,
@@ -21,23 +22,39 @@ export async function generateBackend(cwd: string, answers: ProjectAnswers) {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    ${isDrizzle ? `"db:generate": "drizzle-kit generate",
+    ${
+      isDrizzle
+        ? `"db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:push": "drizzle-kit push"` : `"db:generate": "prisma generate",
+    "db:push": "drizzle-kit push"`
+        : `"db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "db:studio": "prisma studio"`}
+    "db:studio": "prisma studio"`
+    }
   },
   "dependencies": {
-    ${isHono ? `"hono": "^4.7.0",
+    ${
+      isHono
+        ? `"hono": "^4.7.0",
     "@hono/node-server": "^1.14.0",
-    "zod": "^3.24.0"` : `"express": "^5.2.0",
-    "zod": "^3.24.0"`},
-    ${isDrizzle ? `"drizzle-orm": "^0.44.0",
-    "postgres": "^3.4.0"` : `"@prisma/client": "^5.22.0",
-    "prisma": "^5.22.0"`}${answers.multiUser ? `,
+    "zod": "^3.24.0"`
+        : `"express": "^5.2.0",
+    "zod": "^3.24.0"`
+    },
+    ${
+      isDrizzle
+        ? `"drizzle-orm": "^0.44.0",
+    "postgres": "^3.4.0"`
+        : `"@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0"`
+    }${
+      answers.multiUser
+        ? `,
     "bcryptjs": "^2.4.3",
-    "jose": "^5.9.0"` : ''}
+    "jose": "^5.9.0"`
+        : ''
+    }
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
@@ -47,7 +64,8 @@ export async function generateBackend(cwd: string, answers: ProjectAnswers) {
     ${isDrizzle ? `"drizzle-kit": "^0.31.0"${answers.multiUser ? `,\n    "@types/bcryptjs": "^2.4.0"` : ''}` : `"@types/bcryptjs": "^2.4.0"`}
   }
 }
-` : `{
+`
+    : `{
   "name": "@${answers.projectName}/backend",
   "version": "0.1.0",
   "private": true,
@@ -81,16 +99,25 @@ export async function generateBackend(cwd: string, answers: ProjectAnswers) {
 
   await fs.writeFile(path.join(dir, 'package.json'), pkg);
 
-  await fs.writeFile(path.join(dir, 'tsconfig.json'), JSON.stringify({
-    extends: '../tsconfig.base.json',
-    compilerOptions: { outDir: './dist', rootDir: './src', noEmit: false },
-    include: ['src'],
-  }, null, 2));
+  await fs.writeFile(
+    path.join(dir, 'tsconfig.json'),
+    JSON.stringify(
+      {
+        extends: '../tsconfig.base.json',
+        compilerOptions: { outDir: './dist', rootDir: './src', noEmit: false },
+        include: ['src'],
+      },
+      null,
+      2,
+    ),
+  );
 
   if (!isDrizzle) {
     const prismaDir = path.join(dir, 'prisma');
     await fs.ensureDir(prismaDir);
-    await fs.writeFile(path.join(prismaDir, 'schema.prisma'), `generator client {
+    await fs.writeFile(
+      path.join(prismaDir, 'schema.prisma'),
+      `generator client {
   provider = "prisma-client-js"
 }
 datasource db {
@@ -105,11 +132,14 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-`);
+`,
+    );
   }
 
   if (isDrizzle) {
-    await fs.writeFile(path.join(dir, 'drizzle.config.ts'), `import { defineConfig } from 'drizzle-kit';
+    await fs.writeFile(
+      path.join(dir, 'drizzle.config.ts'),
+      `import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
   schema: './src/db/schema/*',
@@ -117,10 +147,13 @@ export default defineConfig({
   dialect: 'postgresql',
   dbCredentials: { url: process.env.DATABASE_URL! },
 });
-`);
+`,
+    );
     const schemaDir = path.join(dir, 'src/db/schema');
     await fs.ensureDir(schemaDir);
-    await fs.writeFile(path.join(schemaDir, 'users.ts'), `import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+    await fs.writeFile(
+      path.join(schemaDir, 'users.ts'),
+      `import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -130,20 +163,29 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
-`);
-    await fs.writeFile(path.join(schemaDir, 'index.ts'), `export * from './users.js';
-`);
-    await fs.writeFile(path.join(dir, 'src/db/index.ts'), `import { drizzle } from 'drizzle-orm/postgres-js';
+`,
+    );
+    await fs.writeFile(
+      path.join(schemaDir, 'index.ts'),
+      `export * from './users.js';
+`,
+    );
+    await fs.writeFile(
+      path.join(dir, 'src/db/index.ts'),
+      `import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema/index.js';
 
 const client = postgres(process.env.DATABASE_URL!);
 export const db = drizzle(client, { schema });
-`);
+`,
+    );
   }
 
   if (isHono) {
-    await fs.writeFile(path.join(dir, 'src/index.ts'), `import { serve } from '@hono/node-server';
+    await fs.writeFile(
+      path.join(dir, 'src/index.ts'),
+      `import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
@@ -168,9 +210,12 @@ app.onError((err, c) => {
 serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) }, (info) => {
   console.log(\`Backend running on http://localhost:\${info.port}\`);
 });
-`);
+`,
+    );
   } else {
-    await fs.writeFile(path.join(dir, 'src/index.ts'), `import express from 'express';
+    await fs.writeFile(
+      path.join(dir, 'src/index.ts'),
+      `import express from 'express';
 ${answers.multiUser ? "import authRouter from './auth.js';" : ''}
 
 const app = express();
@@ -182,12 +227,15 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', project: '${answers.p
 app.listen(Number(process.env.PORT ?? 3000), () => {
   console.log(\`Backend running on http://localhost:\${process.env.PORT ?? 3000}\`);
 });
-`);
+`,
+    );
   }
 
   if (answers.multiUser) {
     if (isHono && isDrizzle) {
-      await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { z } from 'zod';
+      await fs.writeFile(
+        path.join(dir, 'src/auth.ts'),
+        `import { z } from 'zod';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { SignJWT, jwtVerify } from 'jose';
@@ -231,9 +279,12 @@ auth.post('/login', async (c) => {
 export async function verifyJWT(token: string) {
   const { payload } = await jwtVerify(token, JWT_SECRET, { issuer: JWT_ISSUER }); return payload;
 }
-`);
+`,
+      );
     } else if (isHono && !isDrizzle) {
-      await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { z } from 'zod';
+      await fs.writeFile(
+        path.join(dir, 'src/auth.ts'),
+        `import { z } from 'zod';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { SignJWT, jwtVerify } from 'jose';
@@ -274,9 +325,12 @@ auth.post('/login', async (c) => {
 export async function verifyJWT(token: string) {
   const { payload } = await jwtVerify(token, JWT_SECRET, { issuer: JWT_ISSUER }); return payload;
 }
-`);
+`,
+      );
     } else if (!isHono && isDrizzle) {
-      await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { Router, Request, Response } from 'express';
+      await fs.writeFile(
+        path.join(dir, 'src/auth.ts'),
+        `import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { SignJWT, jwtVerify } from 'jose';
 import { hash, compare } from 'bcryptjs';
@@ -344,9 +398,12 @@ export async function verifyJWT(token: string) {
 }
 
 export default router;
-`);
+`,
+      );
     } else {
-      await fs.writeFile(path.join(dir, 'src/auth.ts'), `import { Router, Request, Response } from 'express';
+      await fs.writeFile(
+        path.join(dir, 'src/auth.ts'),
+        `import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { SignJWT, jwtVerify } from 'jose';
 import { hash, compare } from 'bcryptjs';
@@ -411,27 +468,36 @@ export async function verifyJWT(token: string) {
 }
 
 export default router;
-`);
+`,
+      );
     }
   }
 
-  await fs.writeFile(path.join(dir, 'src/app.test.ts'), `import { describe, it, expect } from 'vitest';
+  await fs.writeFile(
+    path.join(dir, 'src/app.test.ts'),
+    `import { describe, it, expect } from 'vitest';
 
 describe('health', () => {
   it('should pass placeholder test', () => {
     expect(1 + 1).toBe(2);
   });
 });
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'vitest.config.ts'), `import { defineConfig } from 'vitest/config';
+  await fs.writeFile(
+    path.join(dir, 'vitest.config.ts'),
+    `import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: { globals: true, environment: 'node' },
 });
-`);
+`,
+  );
 
-  await fs.writeFile(path.join(dir, 'Dockerfile'), `FROM node:26-alpine AS builder
+  await fs.writeFile(
+    path.join(dir, 'Dockerfile'),
+    `FROM node:26-alpine AS builder
 WORKDIR /app
 COPY package.json ./
 COPY src ./src
@@ -445,5 +511,6 @@ COPY --from=builder /app/dist ./dist
 RUN npm install --production
 EXPOSE 3000
 CMD ["node", "dist/index.js"]
-`);
+`,
+  );
 }
