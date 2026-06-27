@@ -1,291 +1,191 @@
-#!/usr/bin/env node
-
 import fs from 'fs-extra';
 import * as path from 'path';
 import { ProjectAnswers } from '../types/project.js';
 
 export async function generatePackageJson(cwd: string, answers: ProjectAnswers) {
+  const hasBot = answers.includeBot;
+
   // Root package.json
-  const packageJsonContent = `{
-  "name": "${answers.projectName}",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "packageManager": "pnpm@9.0.0",
-  "scripts": {
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "check": "pnpm lint && pnpm typecheck && pnpm test",
-    "check:fix": "pnpm lint:fix && pnpm typecheck && pnpm test",
-    "validate": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "release:prep": "pnpm validate",
-    "release:tag": "sh ./scripts/release-tag.sh",
-    "db:generate": "turbo db:generate",
-    "db:migrate": "turbo db:migrate"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "typescript": "^5.7.2",
-    "vitest": "^2.0.0",
-    "turbo": "^2.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=9.0.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["@biomejs/biome", "esbuild", "prisma", "@prisma/client"]
-  }
-}
-`;
-  await fs.writeFile(path.join(cwd, 'package.json'), packageJsonContent);
+  await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify({
+    name: answers.projectName,
+    version: '0.1.0',
+    private: true,
+    type: 'module',
+    packageManager: 'pnpm@11.0.0',
+    scripts: {
+      lint: 'biome check .',
+      'lint:fix': 'biome check --write .',
+      typecheck: 'tsc --noEmit',
+      test: 'vitest run',
+      build: 'turbo build',
+      dev: 'turbo dev',
+      check: 'pnpm lint && pnpm typecheck && pnpm test',
+      validate: 'pnpm lint && pnpm typecheck && pnpm test && pnpm build',
+      format: 'biome format --write .',
+    },
+    devDependencies: {
+      '@biomejs/biome': '^2.4.0',
+      typescript: '^5.7.0',
+      vitest: '^3.2.0',
+      turbo: '^2.9.0',
+    },
+    engines: { node: '>=22.0.0', pnpm: '>=11.0.0' },
+    pnpm: {
+      onlyBuiltDependencies: ['@biomejs/biome', 'esbuild', '@prisma/client', 'prisma', 'sharp'],
+    },
+  }, null, 2));
 
   // pnpm-workspace.yaml
-  const workspace = `packages:
-  - 'backend'
-  - 'web'
-  - 'bot'
-`;
-  await fs.writeFile(path.join(cwd, 'pnpm-workspace.yaml'), workspace);
+  const packages = ['backend', 'web'];
+  if (hasBot) packages.push('bot');
+  await fs.writeFile(path.join(cwd, 'pnpm-workspace.yaml'), `packages:
+${packages.map(p => `  - '${p}'`).join('\n')}
+`);
 
   // turbo.json
-  const turboJson = `{
-  "$schema": "https://turbo.build/schema.json",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+  await fs.writeFile(path.join(cwd, 'turbo.json'), JSON.stringify({
+    $schema: 'https://turbo.build/schema.json',
+    tasks: {
+      build: { dependsOn: ['^build'], outputs: ['dist/**'] },
+      dev: { cache: false, persistent: true },
+      lint: {},
+      typecheck: {},
+      test: {},
     },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "lint": {},
-    "typecheck": {},
-    "test": {}
-  }
-}
-`;
-  await fs.writeFile(path.join(cwd, 'turbo.json'), turboJson);
+  }, null, 2));
 
   // biome.json
-  const biomeContent = `{
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "organizeImports": {
-    "enabled": true
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true
-    }
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2
-  },
-  "files": {
-    "ignore": ["node_modules", "dist", ".next", "coverage"]
-  }
-}
-`;
-  await fs.writeFile(path.join(cwd, 'biome.json'), biomeContent);
+  await fs.writeFile(path.join(cwd, 'biome.json'), JSON.stringify({
+    $schema: 'https://biomejs.dev/schemas/2.4.0/schema.json',
+    organizeImports: { enabled: true },
+    linter: { enabled: true, rules: { recommended: true } },
+    formatter: { enabled: true, indentStyle: 'space', indentWidth: 2, lineWidth: 100 },
+    javascript: { formatter: { trailingCommas: 'es5', semicolons: 'always', quoteStyle: 'single' } },
+    files: { ignore: ['node_modules', 'dist', '.next', 'coverage', '.turbo'] },
+  }, null, 2));
 
   // tsconfig.base.json
-  const tsconfigBase = `{
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "lib": ["ES2022"],
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "noEmit": true
-  }
-}
-`;
-  await fs.writeFile(path.join(cwd, 'tsconfig.base.json'), tsconfigBase);
+  await fs.writeFile(path.join(cwd, 'tsconfig.base.json'), JSON.stringify({
+    compilerOptions: {
+      target: 'ES2022',
+      module: 'ESNext',
+      moduleResolution: 'bundler',
+      lib: ['ES2022'],
+      strict: true,
+      esModuleInterop: true,
+      skipLibCheck: true,
+      forceConsistentCasingInFileNames: true,
+      resolveJsonModule: true,
+      declaration: true,
+      declarationMap: true,
+      noEmit: true,
+    },
+  }, null, 2));
 
   // .gitignore
-  const gitignore = `# Dependencies
-node_modules
+  await fs.writeFile(path.join(cwd, '.gitignore'), `node_modules
 .pnpm-store
-
-# Build outputs
 dist
 .next
-
-# Environment
 .env
 .env.local
 .env.production
 .env.*.local
-
-# Logs
 *.log
-pm2.log
-
-# Misc
 coverage
 .turbo
 .DS_Store
-`;
-  await fs.writeFile(path.join(cwd, '.gitignore'), gitignore);
+`);
 
   // .env.example
-  const envExample = `# Database
-DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"
-
-# App
+  await fs.writeFile(path.join(cwd, '.env.example'), `DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"
 NODE_ENV=development
 PORT=3000
-
-# Telegram Bot (if applicable)
-TELEGRAM_TOKEN=""
-
-# Next.js
-NEXTAUTH_SECRET=""
-NEXTAUTH_URL="http://localhost:3001"
-`;
-  await fs.writeFile(path.join(cwd, '.env.example'), envExample);
+JWT_SECRET="change-me-in-production"
+VITE_API_URL="http://localhost:3000"
+${hasBot ? 'TELEGRAM_TOKEN=""' : ''}
+`);
 
   // CHANGELOG.md
   const now = new Date().toISOString().split('T')[0];
-  const changelog = `# Changelog
+  await fs.writeFile(path.join(cwd, 'CHANGELOG.md'), `# Changelog
 
 ## 0.1.0 (${now})
 
 ### Initial release
-- backend: Node.js + Express + Prisma skeleton
-- web: Next.js + React skeleton
-- docs: 6-level development methodology
+- backend: Hono 4 + Drizzle ORM + PostgreSQL
+- web: React 19 + Vite 8 + TanStack Query 5
+${hasBot ? '- bot: @tgwrapper/core Telegram bot' : ''}
+- ui: ${answers.useUILibrary ? '@ui-construction-library' : 'none'}
+- ci: GitHub Actions (validate + test with PostgreSQL)
+- docker: Docker Compose (Postgres + backend + web${hasBot ? ' + bot' : ''})
+`);
+
+  // README.md
+  const cb = '```';
+  const readme = `# ${answers.projectTitle}
+
+${answers.problem}
+
+## Quick Start
+
+${cb}bash
+pnpm install
+pnpm dev
+pnpm check
+${cb}
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | ${answers.backendFramework === 'hono' ? 'Hono 4' : 'Express 5'} |
+| ORM | ${answers.orm === 'drizzle' ? 'Drizzle ORM' : 'Prisma'} |
+| Database | PostgreSQL 16 |
+| Frontend | React 19 + Vite 8 |
+| Client state | TanStack React Query 5 |
+| Routing | react-router-dom 7${hasBot ? '\n| Bot | @tgwrapper/core |' : ''}${answers.useUILibrary ? '\n| UI | @ui-construction-library |' : ''}
+| Lint/Format | Biome 2 |
+| Tests | Vitest |
+| CI | GitHub Actions |
+
+## Project Structure
+
+${cb}
+├── backend/     # API server
+├── web/         # React SPA
+${hasBot ? "├── bot/         # Telegram bot\n" : ''}├── docs/        # 6-level methodology
+└── .github/     # CI workflows
+${cb}
+
+## Commands
+
+${cb}bash
+pnpm dev          # Run all dev servers
+pnpm build        # Build all packages
+pnpm check        # Lint + typecheck + test
+pnpm validate     # check + build
+pnpm lint         # Biome lint
+pnpm format       # Biome format
+pnpm test         # Run tests
+pnpm typecheck    # TypeScript check
+${cb}
+
+## Environment
+
+Copy \`.env.example\` to \`.env\` and configure:
+
+${cb}bash
+DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"
+JWT_SECRET="your-secret-here"
+VITE_API_URL="http://localhost:3000"
+${cb}
+
+## Deployment
+
+${cb}bash
+docker compose up -d
+${cb}
 `;
-  await fs.writeFile(path.join(cwd, 'CHANGELOG.md'), changelog);
-
-  // VERSION
-  await fs.writeFile(path.join(cwd, 'VERSION'), '0.1.0');
-
-  // README.md — use escaped backticks to avoid template literal conflict
-  const cb = '\`\`\`';
-  const readme = [
-    `# ${answers.projectTitle}`,
-    '',
-    `${answers.problem}`,
-    '',
-    '## Quick Start',
-    '',
-    `${cb}bash`,
-    '# Install dependencies',
-    'pnpm install',
-    '',
-    '# Run development servers',
-    'pnpm dev',
-    '',
-    '# Run validation',
-    'pnpm check',
-    cb,
-    '',
-    '## Project Structure',
-    '',
-    cb,
-    '├── backend/    # Node.js + Express + Prisma backend',
-    '├── web/        # Next.js 15 + React 19 web app',
-    '├── bot/        # Telegram bot (if enabled)',
-    '├── docs/       # 6-level development methodology',
-    '├── scripts/    # Deployment and release scripts',
-    '└── .github/    # CI/CD workflows',
-    cb,
-    '',
-    '## Commands',
-    '',
-    '### Quality',
-    '',
-    `${cb}bash`,
-    'pnpm lint          # Run Biome linter',
-    'pnpm lint:fix      # Fix linting issues',
-    'pnpm typecheck     # TypeScript type checking',
-    'pnpm test          # Run vitest tests',
-    'pnpm check         # Full validation (lint + typecheck + test)',
-    'pnpm validate      # Full validation + build',
-    cb,
-    '',
-    '### Development',
-    '',
-    `${cb}bash`,
-    'pnpm dev           # Run all dev servers (turbo dev)',
-    'pnpm db:studio     # Prisma Studio',
-    'pnpm db:migrate    # Run database migrations',
-    'pnpm db:generate   # Generate Prisma client',
-    cb,
-    '',
-    '### Build',
-    '',
-    `${cb}bash`,
-    'pnpm build         # Build all packages',
-    'pnpm start         # Start production servers',
-    cb,
-    '',
-    '### Release',
-    '',
-    `${cb}bash`,
-    'pnpm release:prep  # Prepare release (validate)',
-    'pnpm release:tag   # Create git tag',
-    cb,
-    '',
-    '## Development Methodology',
-    '',
-    'This project follows a 6-level development methodology:',
-    '',
-    '1. **Level 01 — Idea & Context**: `docs/01-idea/`',
-    '2. **Level 02 — Architecture & Design**: `docs/02-arch/`',
-    '3. **Level 03 — Implementation**: `docs/03-impl/`',
-    '4. **Level 04 — Quality**: `docs/04-quality/`',
-    '5. **Level 05 — Release**: `docs/05-release/`',
-    '6. **Level 06 — Deploy**: `docs/06-deploy/`',
-    '',
-    'Read `docs/LEVELS.md` for details.',
-    '',
-    '## Environment',
-    '',
-    'Copy `.env.example` to `.env` and configure:',
-    '',
-    `${cb}bash`,
-    `DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"`,
-    'NODE_ENV=development',
-    'PORT=3000',
-    'TELEGRAM_TOKEN=""',
-    'NEXTAUTH_SECRET=""',
-    'NEXTAUTH_URL="http://localhost:3001"',
-    cb,
-    '',
-    '## Deployment',
-    '',
-    '### Docker (recommended)',
-    '',
-    `${cb}bash`,
-    'docker compose up -d',
-    cb,
-    '',
-    '### Manual VPS',
-    '',
-    `${cb}bash`,
-    'bash ./scripts/deploy-manual.sh',
-    cb,
-    '',
-    '## License',
-    '',
-    'MIT',
-    '',
-  ].join('\n');
   await fs.writeFile(path.join(cwd, 'README.md'), readme);
 }

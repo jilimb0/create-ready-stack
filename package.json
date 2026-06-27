@@ -1,24 +1,30 @@
 {
-  "name": "create-project-cli",
+  "name": "create-ready-stack",
   "version": "0.1.0",
-  "description": "Create a production-ready Node.js + Next.js monorepo with Telegram bot support, following a structured 6-level development methodology (Idea → Architecture → Implementation → Quality → Release → Deploy)",
+  "description": "Scaffold a production-ready monorepo with your proven stack: Hono 4 + Drizzle ORM + React 19 + TanStack Query 5 + TGWrapper bot",
   "type": "module",
+  "files": [
+    "dist/",
+    "bin/",
+    "templates/"
+  ],
   "main": "dist/cli.js",
   "bin": {
-    "create-project-cli": "./bin/create-project-cli.mjs"
+    "create-ready-stack": "./bin/create-ready-stack.mjs"
   },
   "scripts": {
     "build": "tsc",
-    "start": "node bin/create-project-cli.mjs init",
-    "dev": "ts-node src/cli.ts",
-    "prepublish": "npm run build"
+    "start": "node bin/create-ready-stack.mjs init",
+    "dev": "pnpm build --watch",
+    "prepublishOnly": "pnpm build"
   },
   "keywords": [
     "cli",
-    "project-generator",
-    "monorepo",
-    "nextjs",
-    "nodejs",
+    "scaffold",
+    "hono",
+    "drizzle",
+    "react",
+    "tanstack-query",
     "telegram-bot"
   ],
   "author": "Maksym Opanasenko",
