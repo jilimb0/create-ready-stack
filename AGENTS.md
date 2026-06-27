@@ -10,9 +10,9 @@ CLI scaffolding tool that generates production-ready full-stack projects with th
 - `pnpm typecheck` — `tsc --noEmit`
 - `pnpm test` — `vitest run`
 
-## Publish Flow
+## Release Flow
 - Bump `version` in `package.json`
-- Commit → `git tag v<version>` → push → GitHub Actions publishes to npm
+- Commit → `git tag v<version>` → push → GitHub Actions (`release.yml`) publishes to npm
 - Uses OIDC trusted publishing (`--provenance`) — no local tokens
 
 ## Conventions
