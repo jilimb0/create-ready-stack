@@ -165,4 +165,20 @@ describe('init command handler', () => {
     const domains = await fs.readFile(path.join(tmpDir, 'test-project', 'docs', '02-arch', 'domains.md'), 'utf-8');
     expect(domains).toContain('items');
   });
+
+  it('skips non-empty directory check when force=true', async () => {
+    const existingDir = path.join(tmpDir, 'existing-project');
+    await fs.ensureDir(existingDir);
+    await fs.writeFile(path.join(existingDir, 'test.txt'), 'existing content');
+
+    vi.stubGlobal('process', {
+      ...process,
+      cwd: () => tmpDir,
+    });
+    mockAnswers.set([{ ...baseAnswers, projectName: 'existing-project' }, baseAnswers, baseAnswers]);
+    const { initCommand } = await import('./init.js');
+    await initCommand.handler(true);
+
+    expect(await fs.pathExists(path.join(existingDir, 'docs'))).toBe(true);
+  });
 });

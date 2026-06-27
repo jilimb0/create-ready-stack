@@ -29,7 +29,7 @@ export async function generatePackageJson(cwd: string, answers: ProjectAnswers) 
       vitest: '^3.2.0',
       turbo: '^2.9.0',
     },
-    engines: { node: '>=22.0.0', pnpm: '>=11.0.0' },
+    engines: { node: '>=26.0.0', pnpm: '>=11.0.0' },
   }, null, 2));
 
   // pnpm-workspace.yaml
