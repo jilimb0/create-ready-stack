@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 (2026-06-30)
+
+### Fixed
+- CLI E2E tests no longer fail in CI with vitest ESM resolution error
+- E2E tests now verify `dist/` exists before running, with `pnpm build` fallback
+- `import()` replaced with `createRequire` for vitest-compatible module loading
+
 ## 0.2.0 (2026-06-30)
 
 ### Added
