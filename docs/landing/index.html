@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>create-ready-stack</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;line-height:1.6}
+a{color:#79c0ff;text-decoration:none}
+.container{max-width:900px;margin:0 auto;padding:0 24px}
+.hero{text-align:center;padding:80px 0 48px}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;color:#fff;letter-spacing:-.5px}
+.hero p{font-size:1.15rem;color:#8b949e;margin-top:8px}
+.badge{display:inline-block;margin-top:16px;padding:4px 14px;border:1px solid #30363d;border-radius:20px;font-size:.8rem;color:#8b949e}
+.terminal-wrap{margin:48px auto;max-width:640px}
+.terminal{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:.85rem;line-height:1.7;overflow:hidden}
+.terminal .line{opacity:0;animation:fadeIn .3s forwards}
+.terminal .line:nth-child(1){animation-delay:1.2s}
+.terminal .line:nth-child(2){animation-delay:2.4s}
+.terminal .line:nth-child(3){animation-delay:3.6s}
+.terminal .line:nth-child(4){animation-delay:4.8s}
+.terminal .line:nth-child(5){animation-delay:6s}
+.terminal .line:nth-child(6){animation-delay:6.8s}
+.terminal .line:nth-child(7){animation-delay:7.6s}
+.terminal .line:nth-child(8){animation-delay:8.4s}
+.terminal .line:nth-child(9){animation-delay:9.2s}
+.terminal .line:nth-child(10){animation-delay:10s}
+@keyframes fadeIn{to{opacity:1}}
+.typed{display:inline;overflow:hidden;white-space:nowrap;border-right:2px solid #79c0ff;animation:typing 1.2s steps(28) forwards,blink .8s step-end 0s 3}
+@keyframes typing{from{width:0}to{width:28ch}}
+@keyframes blink{50%{border-color:transparent}}
+.prompt{color:#8b949e}
+.cmd{color:#79c0ff}
+.out{color:#7ee787}
+.success{color:#7ee787}
+.tree{color:#8b949e}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:48px 0}
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;transition:border-color .2s}
+.card:hover{border-color:#79c0ff}
+.card h3{font-size:1rem;color:#fff;margin-bottom:6px}
+.card p{font-size:.85rem;color:#8b949e}
+.card .icon{font-size:1.4rem;margin-bottom:8px;display:block}
+.tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:32px 0}
+.tech-grid .item{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px 16px;text-align:center;font-size:.85rem;color:#c9d1d9;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
+.section-title{font-size:1.4rem;font-weight:600;color:#fff;text-align:center;padding-top:40px}
+.code-block{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:24px auto;max-width:560px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:.85rem;line-height:1.8;overflow-x:auto}
+.code-block .comment{color:#8b949e}
+.code-block .highlight{color:#79c0ff}
+footer{text-align:center;padding:48px 0;color:#8b949e;font-size:.85rem;border-top:1px solid #30363d;margin-top:48px}
+footer a{color:#c9d1d9}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="container">
+    <h1>create-ready-stack</h1>
+    <p>Full-stack scaffolding for the proven stack</p>
+    <span class="badge">v0.1.1</span>
+  </div>
+</section>
+
+<div class="container terminal-wrap">
+  <div class="terminal">
+    <div class="line"><span class="typed">npx create-ready-stack init</span></div>
+    <div class="line"><span class="prompt">✔</span> <span class="cmd">Project name</span> … my-app</div>
+    <div class="line"><span class="prompt">✔</span> <span class="cmd">Backend framework</span> … <span class="out">Hono</span></div>
+    <div class="line"><span class="prompt">✔</span> <span class="cmd">ORM</span> … <span class="out">Drizzle</span></div>
+    <div class="line"><span class="prompt">✔</span> <span class="cmd">Frontend framework</span> … <span class="out">React + Tailwind</span></div>
+    <div class="line"><span class="prompt">✔</span> <span class="cmd">Include bot?</span> … <span class="out">Yes (grammY)</span></div>
+    <div class="line"><span class="success">✓</span> Scaffolding in progress…</div>
+    <div class="line"><span class="tree">├── backend/</span></div>
+    <div class="line"><span class="tree">├── frontend/</span></div>
+    <div class="line"><span class="success">✓ Project ready</span></div>
+  </div>
+</div>
+
+<div class="container">
+  <h2 class="section-title">Features</h2>
+  <div class="grid">
+    <div class="card"><span class="icon">⚡</span><h3>Full-stack in seconds</h3><p>Backend + Frontend + optional Bot scaffolded from a single CLI prompt.</p></div>
+    <div class="card"><span class="icon">🎛️</span><h3>Your stack, your choice</h3><p>Hono or Express, Drizzle or Prisma, Tailwind or plain CSS — pick what fits.</p></div>
+    <div class="card"><span class="icon">🔧</span><h3>Production defaults</h3><p>Docker Compose, CI/CD, Dependabot, and Sentry configured out of the box.</p></div>
+    <div class="card"><span class="icon">📋</span><h3>6-level methodology</h3><p>Complete project docs — from product brief to DRs — generated automatically.</p></div>
+  </div>
+</div>
+
+<div class="container">
+  <h2 class="section-title">Tech Stack</h2>
+  <div class="tech-grid">
+    <div class="item">Hono</div><div class="item">Express</div>
+    <div class="item">Drizzle</div><div class="item">Prisma</div>
+    <div class="item">React 19</div><div class="item">Tailwind</div>
+    <div class="item">grammY</div><div class="item">Docker</div>
+    <div class="item">Biome</div><div class="item">Sentry</div>
+    <div class="item">Vitest</div><div class="item">Dependabot</div>
+  </div>
+</div>
+
+<div class="container">
+  <h2 class="section-title">Quick Start</h2>
+  <div class="code-block">
+    <span class="highlight">$</span> npx create-ready-stack init<br>
+    <span class="comment"># follow the prompts…</span><br>
+    <span class="highlight">$</span> cd my-project<br>
+    <span class="highlight">$</span> pnpm install && pnpm dev
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <a href="https://github.com/jilimbo/create-ready-stack">GitHub</a> &middot; MIT License
+  </div>
+</footer>
+
+</body>
+</html>

@@ -136,14 +136,51 @@ coverage
 `,
   );
 
+  // .dockerignore
+  await fs.writeFile(
+    path.join(cwd, '.dockerignore'),
+    `node_modules
+.pnpm-store
+dist
+.git
+.gitignore
+*.md
+.env
+.env.*
+`,
+  );
+
+  // .github/dependabot.yml
+  const dependabotDir = path.join(cwd, '.github');
+  await fs.ensureDir(dependabotDir);
+  await fs.writeFile(
+    path.join(dependabotDir, 'dependabot.yml'),
+    `version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+`,
+  );
+
   // .env.example
   const jwtLine = answers.multiUser ? `JWT_SECRET="${answers.jwtSecret}"` : '';
+  const sentryLine = answers.useSentry ? '\nSENTRY_DSN=""' : '';
+  const sentryViteLine = answers.useSentry ? '\nVITE_SENTRY_DSN=""' : '';
   await fs.writeFile(
     path.join(cwd, '.env.example'),
     `DATABASE_URL="postgresql://postgres:password@localhost:5432/${answers.projectName}"
 NODE_ENV=development
 PORT=3000
-${jwtLine}
+${jwtLine}${sentryLine}${sentryViteLine}
 VITE_API_URL="http://localhost:3000"
 ${hasBot ? 'TELEGRAM_TOKEN=""' : ''}
 `,

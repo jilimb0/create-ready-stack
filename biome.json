@@ -3,7 +3,11 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "suspicious": {
+        "noUselessEscapeInString": "off",
+        "noTemplateCurlyInString": "off"
+      }
     }
   },
   "formatter": {

@@ -17,9 +17,14 @@
     "start": "node bin/create-ready-stack.mjs init",
     "dev": "pnpm build --watch",
     "lint": "biome lint src/",
+    "lint:fix": "biome check --write src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "validate": "pnpm check && pnpm build",
+    "prepublishOnly": "pnpm validate"
   },
   "keywords": [
     "cli",
@@ -42,11 +47,12 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.0",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^22.10.2",
     "@types/yargs": "^17.0.33",
-    "@biomejs/biome": "^2.4.0",
+    "@vitest/coverage-v8": "^4.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "vitest": "^4.1.9"

@@ -4,6 +4,8 @@ export interface ProjectAnswers {
   format: 'web' | 'bot' | 'web+bot';
   multiUser: boolean;
   useDocker: boolean;
+  useTailwind: boolean;
+  useSentry: boolean;
   backendFramework: 'hono' | 'express';
   orm: 'drizzle' | 'prisma';
   useUILibrary: boolean;

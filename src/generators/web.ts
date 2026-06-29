@@ -5,9 +5,19 @@ import type { ProjectAnswers } from '../types/project.js';
 export async function generateWeb(cwd: string, answers: ProjectAnswers) {
   const dir = path.join(cwd, 'web');
   await fs.ensureDir(path.join(dir, 'src'));
+
+  if (answers.useTailwind) {
+    await fs.ensureDir(path.join(dir, 'src'));
+  }
   await fs.ensureDir(path.join(dir, 'public'));
 
   const uilibDep = answers.useUILibrary ? ',\n    "@ui-construction-library/core": "^0.1.0"' : '';
+  const sentryDep = answers.useSentry
+    ? ',\n    "@sentry/react": "^9.0.0"'
+    : '';
+  const tailwindDeps = answers.useTailwind
+    ? ',\n    "@tailwindcss/vite": "^4.1.0",\n    "tailwindcss": "^4.1.0"'
+    : '';
 
   await fs.writeFile(
     path.join(dir, 'package.json'),
@@ -29,7 +39,7 @@ export async function generateWeb(cwd: string, answers: ProjectAnswers) {
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.0",
     "@tanstack/react-query": "^5.75.0",
-    "zod": "^3.24.0"${uilibDep}
+    "zod": "^3.24.0"${uilibDep}${sentryDep}
   },
   "devDependencies": {
     "@types/react": "^19.1.0",
@@ -39,11 +49,23 @@ export async function generateWeb(cwd: string, answers: ProjectAnswers) {
     "vite": "^8.0.0",
     "vitest": "^3.2.0",
     "@testing-library/react": "^16.3.0",
-    "jsdom": "^26.0.0"
+    "jsdom": "^26.0.0"${tailwindDeps}
   }
 }
 `,
   );
+
+  if (answers.useTailwind) {
+    await fs.writeFile(
+      path.join(dir, 'src', 'index.css'),
+      `@import "tailwindcss";
+
+:root {
+  --color-primary: #3b82f6;
+}
+`,
+    );
+  }
 
   await fs.writeFile(
     path.join(dir, 'index.html'),
@@ -62,15 +84,21 @@ export async function generateWeb(cwd: string, answers: ProjectAnswers) {
 `,
   );
 
+  const sentryImport = answers.useSentry
+    ? `import * as Sentry from '@sentry/react';\n`
+    : '';
+  const sentryInit = answers.useSentry
+    ? `\nSentry.init({\n  dsn: import.meta.env.VITE_SENTRY_DSN,\n  environment: import.meta.env.MODE,\n});\n`
+    : '';
+
   await fs.writeFile(
     path.join(dir, 'src/main.tsx'),
-    `import { StrictMode } from 'react';
+    `${sentryImport}import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App';
-
-const queryClient = new QueryClient();
+import App from './App';${answers.useTailwind ? "\nimport './index.css';" : ''}
+${sentryInit}const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -84,30 +112,42 @@ createRoot(document.getElementById('root')!).render(
 `,
   );
 
+  const sentryWrapper = answers.useSentry ? 'Sentry.withProfiler(' : '';
+  const sentryWrapperClose = answers.useSentry ? ')' : '';
+
   await fs.writeFile(
     path.join(dir, 'src/App.tsx'),
     `import { Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
 
-export default function App() {
+export default ${sentryWrapper}function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
   );
-}
+}${sentryWrapperClose}
 
 function Home() {
+  const [count, setCount] = useState(0);
+
   return (
-    <main>
-      <h1>${answers.projectTitle}</h1>
-      <p>Welcome to your new project.</p>
+    <main${answers.useTailwind ? " className=\"min-h-screen flex flex-col items-center justify-center gap-4 p-8\"" : ''}>
+      <h1${answers.useTailwind ? " className=\"text-4xl font-bold\"" : ''}>${answers.projectTitle}</h1>
+      <p${answers.useTailwind ? " className=\"text-lg text-gray-600\"" : ''}>Welcome to your new project.</p>
+      <button
+        onClick={() => setCount((c) => c + 1)}
+        ${answers.useTailwind ? "className=\"rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600\"" : ''}
+      >
+        Count is {count}
+      </button>
     </main>
   );
 }
 
 function Dashboard() {
-  return <h1>Dashboard</h1>;
+  return <h1${answers.useTailwind ? " className=\"text-2xl font-bold p-4\"" : ''}>Dashboard</h1>;
 }
 `,
   );
@@ -127,13 +167,17 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 `,
   );
 
+  const tailwindPlugin = answers.useTailwind
+    ? ",\n  tailwindcss()"
+    : '';
+
   await fs.writeFile(
     path.join(dir, 'vite.config.ts'),
     `import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import react from '@vitejs/plugin-react';${answers.useTailwind ? "\nimport tailwindcss from '@tailwindcss/vite';" : ''}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react()${tailwindPlugin}],
   server: { port: 5173, proxy: { '/api': 'http://localhost:3000' } },
 });
 `,
@@ -181,14 +225,26 @@ export default defineConfig({
   await fs.writeFile(
     path.join(dir, 'src/App.test.tsx'),
     `import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 
 describe('App', () => {
   it('renders project title', () => {
     render(<MemoryRouter><App /></MemoryRouter>);
-    expect(screen.getByText('${answers.projectTitle}')).toBeInTheDocument();
+    expect(screen.getByText('${answers.projectTitle}')).toBeDefined();
+  });
+
+  it('renders welcome message', () => {
+    render(<MemoryRouter><App /></MemoryRouter>);
+    expect(screen.getByText('Welcome to your new project.')).toBeDefined();
+  });
+
+  it('increments counter on button click', () => {
+    render(<MemoryRouter><App /></MemoryRouter>);
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.getByText('Count is 1')).toBeDefined();
   });
 });
 `,
@@ -207,6 +263,15 @@ FROM nginx:alpine AS runtime
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
+`,
+  );
+
+  await fs.writeFile(
+    path.join(dir, '.dockerignore'),
+    `node_modules
+dist
+.git
+*.md
 `,
   );
 }

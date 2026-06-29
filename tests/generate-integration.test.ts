@@ -14,6 +14,8 @@ const baseAnswers: ProjectAnswers = {
   format: 'web+bot',
   multiUser: true,
   useDocker: true,
+  useTailwind: true,
+  useSentry: false,
   backendFramework: 'hono',
   orm: 'drizzle',
   useUILibrary: true,
@@ -37,8 +39,13 @@ const baseAnswers: ProjectAnswers = {
 
 const variants: { name: string; answers: ProjectAnswers }[] = [
   { name: 'hono-drizzle-web', answers: { ...baseAnswers, format: 'web', includeBot: false, orm: 'drizzle', backendFramework: 'hono' } },
+  { name: 'hono-prisma-web', answers: { ...baseAnswers, format: 'web', includeBot: false, orm: 'prisma', backendFramework: 'hono' } },
+  { name: 'express-drizzle-web', answers: { ...baseAnswers, format: 'web', includeBot: false, orm: 'drizzle', backendFramework: 'express' } },
   { name: 'express-prisma-web', answers: { ...baseAnswers, format: 'web', includeBot: false, orm: 'prisma', backendFramework: 'express' } },
   { name: 'hono-drizzle-web+bot', answers: { ...baseAnswers, format: 'web+bot', includeBot: true, orm: 'drizzle', backendFramework: 'hono' } },
+  { name: 'hono-prisma-web+bot', answers: { ...baseAnswers, format: 'web+bot', includeBot: true, orm: 'prisma', backendFramework: 'hono' } },
+  { name: 'express-drizzle-web+bot', answers: { ...baseAnswers, format: 'web+bot', includeBot: true, orm: 'drizzle', backendFramework: 'express' } },
+  { name: 'express-prisma-web+bot', answers: { ...baseAnswers, format: 'web+bot', includeBot: true, orm: 'prisma', backendFramework: 'express' } },
 ];
 
 describe('full generation integration', () => {
@@ -132,6 +139,8 @@ describe('full generation integration', () => {
         format: 'web',
         multiUser: true,
         useDocker: false,
+        useTailwind: false,
+        useSentry: false,
         backendFramework: 'hono',
         orm: 'drizzle',
         useUILibrary: false,

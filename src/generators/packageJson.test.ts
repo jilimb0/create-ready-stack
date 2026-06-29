@@ -11,6 +11,8 @@ const defaultAnswers: ProjectAnswers = {
   format: 'web',
   multiUser: true,
   useDocker: true,
+  useTailwind: true,
+  useSentry: false,
   backendFramework: 'hono',
   orm: 'drizzle',
   useUILibrary: true,

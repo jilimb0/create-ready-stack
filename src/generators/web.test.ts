@@ -11,6 +11,8 @@ const baseAnswers: ProjectAnswers = {
   format: 'web',
   multiUser: true,
   useDocker: true,
+  useTailwind: true,
+  useSentry: false,
   backendFramework: 'hono',
   orm: 'drizzle',
   useUILibrary: true,
@@ -83,7 +85,8 @@ describe('generateWeb', () => {
     await generateWeb(tmpDir, baseAnswers);
     const appTsx = await fs.readFile(path.join(tmpDir, 'web', 'src', 'App.tsx'), 'utf-8');
     expect(appTsx).toContain("import { Routes, Route } from 'react-router-dom'");
-    expect(appTsx).toContain('<h1>Test Project</h1>');
+    expect(appTsx).toContain('Test Project');
+    expect(appTsx).toContain('Count is {count}');
   });
 
   it('generates src/api.ts', async () => {
@@ -100,7 +103,7 @@ describe('generateWeb', () => {
     await generateWeb(tmpDir, baseAnswers);
     const viteConfig = await fs.readFile(path.join(tmpDir, 'web', 'vite.config.ts'), 'utf-8');
     expect(viteConfig).toContain("import { defineConfig } from 'vite'");
-    expect(viteConfig).toContain('plugins: [react()]');
+    expect(viteConfig).toContain('tailwindcss()');
   });
 
   it('generates src/App.test.tsx', async () => {
@@ -108,7 +111,7 @@ describe('generateWeb', () => {
     const appTest = await fs.readFile(path.join(tmpDir, 'web', 'src', 'App.test.tsx'), 'utf-8');
     expect(appTest).toContain("import { describe, it, expect } from 'vitest'");
     expect(appTest).toContain('render(<MemoryRouter><App /></MemoryRouter>);');
-    expect(appTest).toContain("expect(screen.getByText('Test Project')).toBeInTheDocument();");
+    expect(appTest).toContain('increments counter on button click');
   });
 
   it('generates tsconfig.json', async () => {

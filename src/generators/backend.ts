@@ -54,7 +54,7 @@ export async function generateBackend(cwd: string, answers: ProjectAnswers) {
     "bcryptjs": "^2.4.3",
     "jose": "^5.9.0"`
         : ''
-    }
+    }${answers.useSentry ? ',\n    "@sentry/node": "^9.0.0"' : ''}
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
@@ -85,7 +85,7 @@ export async function generateBackend(cwd: string, answers: ProjectAnswers) {
     "express": "^5.2.0",
     "zod": "^3.24.0",
     "@prisma/client": "^5.22.0",
-    "prisma": "^5.22.0"${answers.multiUser ? ',\n    "bcryptjs": "^2.4.3",\n    "jose": "^5.9.0"' : ''}
+    "prisma": "^5.22.0"${answers.multiUser ? ',\n    "bcryptjs": "^2.4.3",\n    "jose": "^5.9.0"' : ''}${answers.useSentry ? ',\n    "@sentry/node": "^9.0.0"' : ''}
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
@@ -183,23 +183,42 @@ export const db = drizzle(client, { schema });
   }
 
   if (isHono) {
+    const sentryImport = answers.useSentry
+      ? "import * as Sentry from '@sentry/node';\n"
+      : '';
+    const sentryInit = answers.useSentry
+      ? "\nSentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV });\n"
+      : '';
+
     await fs.writeFile(
       path.join(dir, 'src/index.ts'),
-      `import { serve } from '@hono/node-server';
+      `${sentryImport}import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { HTTPException } from 'hono/http-exception';
 ${answers.multiUser ? "import { auth } from './auth.js';" : ''}
-
-const app = new Hono();
+${sentryInit}const app = new Hono();
 
 app.use('*', cors());
 app.use('*', logger());
 
 ${answers.multiUser ? "app.route('/auth', auth);" : ''}
 
-app.get('/health', (c) => c.json({ status: 'ok', project: '${answers.projectName}' }));
+app.get('/health', async (c) => {
+  const health = { status: 'ok', project: '${answers.projectName}', timestamp: new Date().toISOString() };
+  try {${isDrizzle ? `
+    const { sql } = await import('drizzle-orm');
+    const { db } = await import('./db/index.js');
+    await db.execute(sql\`SELECT 1\`);` : `
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    await prisma.\$queryRaw\`SELECT 1\`;`}
+    return c.json({ ...health, db: 'connected' });
+  } catch {
+    return c.json({ ...health, db: 'disconnected' }, 503);
+  }
+});
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) return err.getResponse();
@@ -213,16 +232,38 @@ serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) }, (info) => {
 `,
     );
   } else {
+    const sentryImportEx = answers.useSentry
+      ? "import * as Sentry from '@sentry/node';\n"
+      : '';
+    const sentryInitEx = answers.useSentry
+      ? "\nSentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV });\n"
+      : '';
+    const sentryMiddleware = answers.useSentry
+      ? "\napp.use(Sentry.Handlers.requestHandler());\napp.use(Sentry.Handlers.tracingHandler());"
+      : '';
+
     await fs.writeFile(
       path.join(dir, 'src/index.ts'),
-      `import express from 'express';
+      `${sentryImportEx}import express from 'express';
 ${answers.multiUser ? "import authRouter from './auth.js';" : ''}
-
-const app = express();
+${sentryInitEx}const app = express();
 app.use(express.json());
-${answers.multiUser ? "app.use('/auth', authRouter);" : ''}
+${answers.multiUser ? "app.use('/auth', authRouter);" : ''}${sentryMiddleware}
 
-app.get('/health', (_req, res) => res.json({ status: 'ok', project: '${answers.projectName}' }));
+app.get('/health', async (_req, res) => {
+  const health = { status: 'ok', project: '${answers.projectName}', timestamp: new Date().toISOString() };
+  try {${isDrizzle ? `
+    const { sql } = await import('drizzle-orm');
+    const { db } = await import('./db/index.js');
+    await db.execute(sql\`SELECT 1\`);` : `
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    await prisma.\$queryRaw\`SELECT 1\`;`}
+    res.json({ ...health, db: 'connected' });
+  } catch {
+    res.status(503).json({ ...health, db: 'disconnected' });
+  }
+});
 
 app.listen(Number(process.env.PORT ?? 3000), () => {
   console.log(\`Backend running on http://localhost:\${process.env.PORT ?? 3000}\`);
@@ -476,10 +517,15 @@ export default router;
   await fs.writeFile(
     path.join(dir, 'src/app.test.ts'),
     `import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-describe('health', () => {
-  it('should pass placeholder test', () => {
-    expect(1 + 1).toBe(2);
+describe('app setup', () => {
+  it('has package.json with correct name', () => {
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const pkg = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf-8'));
+    expect(pkg.name).toBe('@${answers.projectName}/backend');
   });
 });
 `,

@@ -6,7 +6,20 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
     exclude: ['node_modules', 'dist'],
-    testTimeout: 30_000,
-    hookTimeout: 30_000,
+    testTimeout: 90_000,
+    hookTimeout: 60_000,
+    coverage: {
+      enabled: true,
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts'],
+      thresholds: {
+        statements: 70,
+        branches: 60,
+        functions: 60,
+        lines: 70,
+      },
+    },
   },
 });

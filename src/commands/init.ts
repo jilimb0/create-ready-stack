@@ -65,10 +65,22 @@ const QUESTION_BLOCKS = {
     },
     {
       type: 'confirm',
+      name: 'useTailwind',
+      message: 'Include Tailwind CSS v4 for styling?',
+      default: true,
+    },
+    {
+      type: 'confirm',
       name: 'useUILibrary',
       message: 'Include @ui-construction-library components?',
       description: 'UI-Library is your personal design system — atoms, primitives, Tailwind v4',
       default: true,
+    },
+    {
+      type: 'confirm',
+      name: 'useSentry',
+      message: 'Include Sentry error tracking?',
+      default: false,
     },
   ],
 
@@ -97,10 +109,35 @@ const QUESTION_BLOCKS = {
   ],
 };
 
+async function checkForUpdate(currentVersion: string): Promise<string | null> {
+  try {
+    const res = await fetch('https://registry.npmjs.org/create-ready-stack/latest');
+    if (res.ok) {
+      const data = (await res.json()) as { version?: string };
+      if (data.version && data.version !== currentVersion) {
+        return data.version;
+      }
+    }
+  } catch {
+    // Network issues — skip check silently
+  }
+  return null;
+}
+
 export const initCommand = {
   command: 'init',
   describe: 'Create a new project following the proven stack pattern',
-  handler: async (force = false) => {
+  handler: async (force = false, cliVersion?: string) => {
+    if (cliVersion) {
+      const latest = await checkForUpdate(cliVersion);
+      if (latest) {
+        console.log(
+          `\n A new version of create-ready-stack is available: ${latest} (you have ${cliVersion})`,
+        );
+        console.log('  Update with: npm update -g create-ready-stack\n');
+      }
+    }
+
     console.log('\n Initializing new project...\n');
 
     const cwd = process.cwd();
@@ -143,6 +180,8 @@ export const initCommand = {
       format: generalAnswers.format,
       multiUser: generalAnswers.multiUser,
       useDocker: generalAnswers.useDocker,
+      useTailwind: generalAnswers.useTailwind,
+      useSentry: generalAnswers.useSentry,
       backendFramework: generalAnswers.backendFramework,
       orm: generalAnswers.orm,
       useUILibrary: generalAnswers.useUILibrary,
@@ -189,6 +228,8 @@ export const initCommand = {
     console.log(`   Frontend:  React 19 + Vite 8 + TanStack Query 5`);
     if (answers.includeBot) console.log(`   Bot:       @tgwrapper/core`);
     if (answers.useUILibrary) console.log(`   UI:        @ui-construction-library`);
+    if (answers.useTailwind) console.log(`   CSS:       Tailwind CSS v4`);
+    if (answers.useSentry) console.log(`   Monitoring: Sentry`);
     console.log('');
   },
 };
