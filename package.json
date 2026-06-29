@@ -22,6 +22,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
+    "test:bench": "vitest run tests/benchmark.test.ts --coverage.enabled=false",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "validate": "pnpm check && pnpm build",
     "prepublishOnly": "pnpm validate"

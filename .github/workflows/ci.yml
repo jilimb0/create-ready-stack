@@ -17,9 +17,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm build
       - run: pnpm test
       - run: pnpm test:coverage
-      - run: pnpm build
 
   bench:
     runs-on: ubuntu-latest
@@ -31,4 +31,4 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Run benchmarks
-        run: npx vitest run tests/benchmark.test.ts --reporter=verbose
+        run: npx vitest run tests/benchmark.test.ts --coverage.enabled=false --reporter=verbose
