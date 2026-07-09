@@ -21,7 +21,7 @@ jobs:
       # overrides OIDC trusted publishing and causes E404.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 26
 
       # Upgrade npm — npm natively supports OIDC Trusted Publishing.
       # pnpm has its own token-exchange path that returns 404 for npmjs.com.
@@ -36,4 +36,4 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - name: Publish to npm
-        run: npm publish --access public
+        run: npm publish --access public --provenance
