@@ -1,5 +1,4 @@
 node_modules
-dist
 .npm
 .next
 coverage
@@ -9,5 +8,4 @@ coverage
 *.log
 pm2.log
 src
-bin
 *.md

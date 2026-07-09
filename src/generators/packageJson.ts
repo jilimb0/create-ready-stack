@@ -1,6 +1,7 @@
 import * as path from 'node:path';
 import fs from 'fs-extra';
 import type { ProjectAnswers } from '../types/project.js';
+import { version } from '../config/versions.js';
 
 export async function generatePackageJson(cwd: string, answers: ProjectAnswers) {
   const hasBot = answers.includeBot;
@@ -27,12 +28,12 @@ export async function generatePackageJson(cwd: string, answers: ProjectAnswers) 
           format: 'biome format --write .',
         },
         devDependencies: {
-          '@biomejs/biome': '^2.4.0',
-          typescript: '^5.7.0',
-          vitest: '^3.2.0',
-          turbo: '^2.9.0',
+          '@biomejs/biome': version('@biomejs/biome'),
+          typescript: version('typescript'),
+          vitest: version('vitest'),
+          turbo: version('turbo'),
         },
-        engines: { node: '>=26.0.0', pnpm: '>=11.0.0' },
+        engines: { node: '>=22.0.0', pnpm: '>=11.0.0' },
       },
       null,
       2,

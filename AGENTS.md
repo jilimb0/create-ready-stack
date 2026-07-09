@@ -17,6 +17,12 @@ CLI scaffolding tool that generates production-ready full-stack projects with th
 
 ## Conventions
 - Generates flat `backend/`, `web/`, optional `bot/` structure
-- EJS templating for file generation
+- File generation uses template literals + `fs.writeFile()` in `src/generators/`
+- Dependency versions are centralized in `src/config/versions.ts` — always update that file, not per-generator strings
 - Every project gets `docs/` with level-specific markdown
 - Generated projects include CI workflows, Docker/Compose, Biome
+
+## v0.3.0 Changes
+- Tests: `src/commands/upgrade.ts` now supports `--apply` flag to actually overwrite files
+- Node engine lowered from >=26 to >=22
+- Landing page (`docs/landing/`) updated: references `@tgwrapper/core` not grammY, version badge synced with package.json

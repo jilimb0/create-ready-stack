@@ -1,6 +1,7 @@
 import * as path from 'node:path';
 import fs from 'fs-extra';
 import type { ProjectAnswers } from '../types/project.js';
+import { version } from '../config/versions.js';
 
 export async function generateBot(cwd: string, answers: ProjectAnswers) {
   const dir = path.join(cwd, 'bot');
@@ -20,13 +21,13 @@ export async function generateBot(cwd: string, answers: ProjectAnswers) {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tgwrapper/core": "^0.17.0",
-    "@tgwrapper/adapter-redis": "^0.8.0"
+    "@tgwrapper/core": "${version('tgwrapperCore')}",
+    "@tgwrapper/adapter-redis": "${version('tgwrapperRedis')}"
   },
   "devDependencies": {
-    "@types/node": "^26.0.0",
-    "typescript": "^5.7.0",
-    "tsx": "^4.19.0"
+    "@types/node": "${version('@types/node')}",
+    "typescript": "${version('typescript')}",
+    "tsx": "${version('tsx')}"
   }
 }
 `,

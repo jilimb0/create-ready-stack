@@ -1,3 +1,7 @@
+/**
+ * Centralized dependency version map.
+ * All generators MUST import versions from here — never hardcode version strings.
+ */
 export const VERSIONS = {
   // Backend frameworks
   hono: '^4.7.0',
@@ -46,6 +50,13 @@ export const VERSIONS = {
 
   // Root
   '@biomejs/biome': '^2.4.0',
+
+  // Observability & tools
+  sentryNode: '^9.0.0',
+  sentryReact: '^9.0.0',
+  tailwindcssVite: '^4.1.0',
+  tailwindcss: '^4.1.0',
+  uiLibraryCore: '^0.1.0',
 } as const;
 
 export type VersionKey = keyof typeof VERSIONS;

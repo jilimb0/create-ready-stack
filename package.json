@@ -5,8 +5,7 @@
   "type": "module",
   "files": [
     "dist/",
-    "bin/",
-    "templates/"
+    "bin/"
   ],
   "main": "dist/cli.js",
   "bin": {
@@ -58,9 +57,9 @@
     "typescript": "^5.7.2",
     "vitest": "^4.1.9"
   },
-  "packageManager": "pnpm@11.0.0",
+  "packageManager": "pnpm@11.7.0",
   "engines": {
-    "node": ">=26.0.0"
+    "node": ">=22.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
