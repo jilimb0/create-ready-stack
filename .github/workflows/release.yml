@@ -17,11 +17,16 @@ jobs:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
 
-      # No registry-url here — it writes an auth token to .npmrc that
-      # overrides OIDC trusted publishing and causes E404.
+      # registry-url is required — setup-node writes
+      # //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} into ~/.npmrc
+      # which tells npm where the registry is for the OIDC token exchange.
+      # NODE_AUTH_TOKEN must NOT be set in the publish step below —
+      # setting it to GITHUB_TOKEN causes npm to use it as a bearer token
+      # instead of doing the OIDC exchange, resulting in 404.
       - uses: actions/setup-node@v4
         with:
           node-version: 26
+          registry-url: 'https://registry.npmjs.org'
 
       # Upgrade npm — npm natively supports OIDC Trusted Publishing.
       # pnpm has its own token-exchange path that returns 404 for npmjs.com.
