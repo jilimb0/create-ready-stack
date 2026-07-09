@@ -16,12 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
+
+      # No registry-url here — it writes an auth token to .npmrc that
+      # overrides OIDC trusted publishing and causes E404.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
-          cache: pnpm
 
+      # Upgrade npm — npm natively supports OIDC Trusted Publishing.
+      # pnpm has its own token-exchange path that returns 404 for npmjs.com.
       - name: Upgrade npm for trusted publishing
         run: |
           sudo npm i -g npm@11.8.0
