@@ -37,7 +37,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/jilimb0/create-ready-stack"
+    "url": "git+https://github.com/jilimb0/create-ready-stack.git"
   },
   "author": "Maksym Opanasenko",
   "license": "MIT",
@@ -58,12 +58,10 @@
     "vitest": "^4.1.9"
   },
   "packageManager": "pnpm@11.7.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=22.0.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }
