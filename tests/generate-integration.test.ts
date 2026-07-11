@@ -12,6 +12,7 @@ const baseAnswers: ProjectAnswers = {
   projectName: 'integration-test',
   projectTitle: 'Integration Test',
   format: 'web+bot',
+  frontend: 'vite-spa',
   multiUser: true,
   useDocker: true,
   useTailwind: true,
@@ -46,6 +47,8 @@ const variants: { name: string; answers: ProjectAnswers }[] = [
   { name: 'hono-prisma-web+bot', answers: { ...baseAnswers, format: 'web+bot', includeBot: true, orm: 'prisma', backendFramework: 'hono' } },
   { name: 'express-drizzle-web+bot', answers: { ...baseAnswers, format: 'web+bot', includeBot: true, orm: 'drizzle', backendFramework: 'express' } },
   { name: 'express-prisma-web+bot', answers: { ...baseAnswers, format: 'web+bot', includeBot: true, orm: 'prisma', backendFramework: 'express' } },
+  { name: 'hono-drizzle-web-nextjs', answers: { ...baseAnswers, format: 'web', includeBot: false, orm: 'drizzle', backendFramework: 'hono', frontend: 'nextjs' } },
+  { name: 'hono-drizzle-web+bot-nextjs', answers: { ...baseAnswers, format: 'web+bot', includeBot: true, orm: 'drizzle', backendFramework: 'hono', frontend: 'nextjs' } },
 ];
 
 describe('full generation integration', () => {
@@ -137,6 +140,7 @@ describe('full generation integration', () => {
         projectName: 'build-test',
         projectTitle: 'Build Test',
         format: 'web',
+        frontend: 'vite-spa',
         multiUser: true,
         useDocker: false,
         useTailwind: false,

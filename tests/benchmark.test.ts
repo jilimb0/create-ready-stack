@@ -11,6 +11,7 @@ const answers: ProjectAnswers = {
   projectName: 'bench-test',
   projectTitle: 'Bench Test',
   format: 'web+bot',
+  frontend: 'vite-spa',
   multiUser: true,
   useDocker: true,
   useTailwind: true,

@@ -186,7 +186,7 @@ ${answers.criticalRisk}
 - docs/03-impl/dod.md - Level 03 DoD
 - docs/03-impl/commands.md - quality/release commands
 
-**Stack:** backend (Node.js + Hono/Express + Drizzle/Prisma), web (React + Vite), ORM (Drizzle/Prisma), DB (Postgres)
+**Stack:** backend (Node.js + Hono/Express + Drizzle/Prisma), web (Vite + React or Next.js 15), ORM (Drizzle/Prisma), DB (Postgres)
 
 **Goal:** Create repository skeleton without business logic
 

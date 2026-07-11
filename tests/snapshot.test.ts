@@ -11,6 +11,7 @@ const baseAnswers: ProjectAnswers = {
   projectName: 'snapshot-test',
   projectTitle: 'Snapshot Test',
   format: 'web+bot',
+  frontend: 'vite-spa',
   multiUser: true,
   useDocker: true,
   useTailwind: true,

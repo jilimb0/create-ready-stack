@@ -28,8 +28,17 @@ const QUESTION_BLOCKS = {
       name: 'format',
       message: 'First version format:',
       choices: [
-        { name: 'Web app (React 19 + Vite 8 + TanStack Query)', value: 'web' },
+        { name: 'Web app', value: 'web' },
         { name: 'Web app + Telegram bot', value: 'web+bot' },
+      ],
+    },
+    {
+      type: 'list',
+      name: 'frontend',
+      message: 'Frontend framework:',
+      choices: [
+        { name: 'Vite + React 19 SPA (fast, lightweight)', value: 'vite-spa' },
+        { name: 'Next.js 15 (SSR, SEO, file-based routing)', value: 'nextjs' },
       ],
     },
     {
@@ -178,6 +187,7 @@ export const initCommand = {
       projectName,
       projectTitle: generalAnswers.projectTitle,
       format: generalAnswers.format,
+      frontend: generalAnswers.frontend,
       multiUser: generalAnswers.multiUser,
       useDocker: generalAnswers.useDocker,
       useTailwind: generalAnswers.useTailwind,
@@ -225,7 +235,7 @@ export const initCommand = {
     console.log('\nStack used:');
     console.log(`   Backend:   ${answers.backendFramework === 'hono' ? 'Hono 4' : 'Express 5'}`);
     console.log(`   ORM:       ${answers.orm === 'drizzle' ? 'Drizzle ORM' : 'Prisma'}`);
-    console.log(`   Frontend:  React 19 + Vite 8 + TanStack Query 5`);
+    console.log(`   Frontend:  ${answers.frontend === 'nextjs' ? 'Next.js 15 + React 19' : 'React 19 + Vite 8 + TanStack Query 5'}`);
     if (answers.includeBot) console.log(`   Bot:       @tgwrapper/core`);
     if (answers.useUILibrary) console.log(`   UI:        @ui-construction-library`);
     if (answers.useTailwind) console.log(`   CSS:       Tailwind CSS v4`);

@@ -9,6 +9,7 @@ const defaultAnswers: ProjectAnswers = {
   projectName: 'test-project',
   projectTitle: 'Test Project',
   format: 'web',
+  frontend: 'vite-spa',
   multiUser: true,
   useDocker: true,
   useTailwind: true,

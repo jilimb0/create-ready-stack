@@ -1,6 +1,6 @@
 {
   "name": "create-ready-stack",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Scaffold a production-ready monorepo with your proven stack: Hono 4 + Drizzle ORM + React 19 + TanStack Query 5 + TGWrapper bot",
   "type": "module",
   "files": [
@@ -62,6 +62,6 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=26.0.0"
   }
 }

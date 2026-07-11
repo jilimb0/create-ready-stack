@@ -2,6 +2,7 @@ export interface ProjectAnswers {
   projectName: string;
   projectTitle: string;
   format: 'web' | 'bot' | 'web+bot';
+  frontend: 'vite-spa' | 'nextjs';
   multiUser: boolean;
   useDocker: boolean;
   useTailwind: boolean;
