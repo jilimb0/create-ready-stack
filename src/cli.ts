@@ -43,10 +43,17 @@ export async function cli() {
           default: false,
           alias: 'f',
         },
+        template: {
+          type: 'string',
+          describe: 'Starter template preset (saas, tma, bot)',
+          choices: ['saas', 'tma', 'bot'] as const,
+          alias: 't',
+        },
       },
       handler: async (argv) => {
         const force = (argv as { force?: boolean }).force ?? false;
-        await initCommand.handler(force, VERSION);
+        const template = (argv as { template?: 'saas' | 'tma' | 'bot' }).template;
+        await initCommand.handler(force, VERSION, template);
       },
     });
 

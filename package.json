@@ -1,6 +1,6 @@
 {
   "name": "create-ready-stack",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Scaffold a production-ready monorepo with your proven stack: Hono 4 + Drizzle ORM + React 19 + TanStack Query 5 + TGWrapper bot",
   "type": "module",
   "files": [
@@ -47,7 +47,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.0",
+    "@biomejs/biome": "^2.5.3",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^22.10.2",

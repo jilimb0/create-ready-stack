@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import fs from 'fs-extra';
-import type { ProjectAnswers } from '../types/project.js';
 import { version } from '../config/versions.js';
+import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateBot(cwd: string, answers: ProjectAnswers) {
   const dir = path.join(cwd, 'bot');
@@ -21,7 +21,7 @@ export async function generateBot(cwd: string, answers: ProjectAnswers) {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tgwrapper/core": "${version('tgwrapperCore')}",
+    "@tgwrapper/core": "^0.20.0",
     "@tgwrapper/adapter-redis": "${version('tgwrapperRedis')}"
   },
   "devDependencies": {
@@ -48,33 +48,36 @@ export async function generateBot(cwd: string, answers: ProjectAnswers) {
 
   await fs.writeFile(
     path.join(dir, 'src/index.ts'),
-    `import { Bot, Router, session } from '@tgwrapper/core';
+    `import { CircuitBreaker, MemorySessionStorage, createBotClient } from '@tgwrapper/core';
 
-const bot = new Bot(process.env.TELEGRAM_TOKEN!);
+const token = process.env.TELEGRAM_TOKEN || 'dummy_token';
 
-bot.use(session({ storage: 'memory' }));
-
-const router = new Router(bot);
-
-const IDLE = 'idle';
-
-router.on('start', IDLE, async (ctx) => {
-  await ctx.reply('Hello from ${answers.projectTitle}! Use /help to see commands.');
+// 1. Circuit breaker for outbound Telegram API calls
+const circuitBreaker = new CircuitBreaker({
+  failureThreshold: 5,
+  cooldownMs: 10_000,
+  halfOpenMaxRequests: 2,
 });
 
-router.on('help', IDLE, async (ctx) => {
-  await ctx.reply(\`Available commands:
-/start - Start the bot
-/help  - Show this help
-/about - About this bot\`);
+// 2. Storage with Memory / Redis state support
+const storage = new MemorySessionStorage<{ state: string }>();
+
+// 3. Resilient Bot Client
+const client = createBotClient({
+  token,
+  circuitBreaker,
 });
 
-router.on('about', IDLE, async (ctx) => {
-  await ctx.reply('${answers.projectTitle} bot powered by @tgwrapper/core');
-});
+console.log('🤖 ${answers.projectTitle} bot initialized with @tgwrapper/core');
 
-bot.start();
-console.log('Bot running...');
+// 4. Graceful Shutdown
+const handleShutdown = (signal: string) => {
+  console.log(\`Received \${signal}. Performing graceful shutdown...\`);
+  process.exit(0);
+};
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('SIGINT', () => handleShutdown('SIGINT'));
 `,
   );
 
