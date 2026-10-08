@@ -30,6 +30,8 @@ const QUESTION_BLOCKS = {
       choices: [
         { name: 'Web app', value: 'web' },
         { name: 'Web app + Telegram bot', value: 'web+bot' },
+        { name: 'Telegram Mini App (TMA Fullstack: React 19 + Hono + @tgwrapper/core)', value: 'tma' },
+        { name: 'Micro-SaaS Starter (Next.js 15 + Drizzle + PricingTable + Stripe)', value: 'saas' },
       ],
     },
     {
@@ -136,7 +138,7 @@ async function checkForUpdate(currentVersion: string): Promise<string | null> {
 export const initCommand = {
   command: 'init',
   describe: 'Create a new project following the proven stack pattern',
-  handler: async (force = false, cliVersion?: string) => {
+  handler: async (force = false, cliVersion?: string, templatePreset?: 'saas' | 'tma' | 'bot') => {
     if (cliVersion) {
       const latest = await checkForUpdate(cliVersion);
       if (latest) {
@@ -181,12 +183,13 @@ export const initCommand = {
     const level01Answers = await inquirer.prompt(QUESTION_BLOCKS.level01);
     const level02Answers = await inquirer.prompt(QUESTION_BLOCKS.level02);
 
-    const includeBot = generalAnswers.format === 'web+bot';
+    const selectedFormat = (templatePreset as typeof generalAnswers.format) || generalAnswers.format;
+    const includeBot = selectedFormat === 'web+bot' || selectedFormat === 'bot' || selectedFormat === 'tma';
 
     const answers: ProjectAnswers = {
       projectName,
       projectTitle: generalAnswers.projectTitle,
-      format: generalAnswers.format,
+      format: selectedFormat,
       frontend: generalAnswers.frontend,
       multiUser: generalAnswers.multiUser,
       useDocker: generalAnswers.useDocker,

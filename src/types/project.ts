@@ -1,7 +1,7 @@
 export interface ProjectAnswers {
   projectName: string;
   projectTitle: string;
-  format: 'web' | 'bot' | 'web+bot';
+  format: 'web' | 'bot' | 'web+bot' | 'tma' | 'saas';
   frontend: 'vite-spa' | 'nextjs';
   multiUser: boolean;
   useDocker: boolean;
