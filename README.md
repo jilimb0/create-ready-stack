@@ -46,6 +46,21 @@ pnpm add --global create-ready-stack
 create-ready-stack init
 ```
 
+### Starter Presets (Templates)
+
+Scaffold specialized production architectures instantly using the `--template` flag:
+
+```bash
+# 🚀 Micro-SaaS Starter (Next.js 15 + Drizzle ORM + Auth + PricingTable + Stripe/Paddle)
+npx create-ready-stack init --template saas
+
+# 📱 Telegram Mini App (React 19 + Hono + @tgwrapper/core + Stars Payments)
+npx create-ready-stack init --template tma
+
+# 🤖 Telegram Bot Starter (@tgwrapper/core + Serverless Webhook / Polling)
+npx create-ready-stack init --template bot
+```
+
 ## What you get
 
 ```
