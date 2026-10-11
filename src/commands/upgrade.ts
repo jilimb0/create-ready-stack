@@ -21,7 +21,7 @@ type UpgradeFile = (typeof UPGRADABLE_FILES)[number];
 function getTemplateContent(file: UpgradeFile, hasBot: boolean): string {
   switch (file) {
     case 'biome.json':
-      return JSON.stringify(
+      return `${JSON.stringify(
         {
           $schema: 'https://biomejs.dev/schemas/2.5.1/schema.json',
           linter: { enabled: true, rules: { preset: 'recommended' } },
@@ -33,10 +33,10 @@ function getTemplateContent(file: UpgradeFile, hasBot: boolean): string {
         },
         null,
         2,
-      ) + '\n';
+      )}\n`;
 
     case 'tsconfig.base.json':
-      return JSON.stringify(
+      return `${JSON.stringify(
         {
           compilerOptions: {
             target: 'ES2022',
@@ -55,7 +55,7 @@ function getTemplateContent(file: UpgradeFile, hasBot: boolean): string {
         },
         null,
         2,
-      ) + '\n';
+      )}\n`;
 
     case '.gitignore':
       return [
@@ -98,7 +98,7 @@ function getTemplateContent(file: UpgradeFile, hasBot: boolean): string {
       ].join('\n');
 
     case 'turbo.json':
-      return JSON.stringify(
+      return `${JSON.stringify(
         {
           $schema: 'https://turbo.build/schema.json',
           tasks: {
@@ -111,7 +111,7 @@ function getTemplateContent(file: UpgradeFile, hasBot: boolean): string {
         },
         null,
         2,
-      ) + '\n';
+      )}\n`;
 
     case 'pnpm-workspace.yaml': {
       const packages = ['backend', 'web'];
