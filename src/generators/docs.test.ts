@@ -111,4 +111,17 @@ describe('generateDocs', () => {
     expect(commands).toContain('pnpm typecheck');
     expect(commands).toContain('pnpm test');
   });
+
+  it('creates .ai infrastructure and ADR files', async () => {
+    await generateDocs(tmpDir, defaultAnswers);
+    expect(await fs.pathExists(path.join(tmpDir, '.ai', 'ARCHITECTURE.md'))).toBe(true);
+    expect(await fs.pathExists(path.join(tmpDir, '.ai', 'CONVENTIONS.md'))).toBe(true);
+    expect(await fs.pathExists(path.join(tmpDir, '.ai', 'COMMON_TASKS.md'))).toBe(true);
+    expect(await fs.pathExists(path.join(tmpDir, '.ai', 'adr', '0000-template.md'))).toBe(true);
+    expect(
+      await fs.pathExists(
+        path.join(tmpDir, '.ai', 'adr', '0001-initial-stack-and-privacy-baseline.md'),
+      ),
+    ).toBe(true);
+  });
 });

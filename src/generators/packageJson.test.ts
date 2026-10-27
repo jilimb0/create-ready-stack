@@ -86,6 +86,7 @@ describe('generatePackageJson', () => {
     expect(gitignore).toContain('node_modules');
     expect(gitignore).toContain('.env');
     expect(gitignore).toContain('dist');
+    expect(gitignore).toContain('.ai/artefacts/');
   });
 
   it('creates .env.example with JWT_SECRET', async () => {

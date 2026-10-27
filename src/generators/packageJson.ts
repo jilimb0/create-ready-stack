@@ -134,6 +134,7 @@ dist
 coverage
 .turbo
 .DS_Store
+.ai/artefacts/
 `,
   );
 

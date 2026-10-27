@@ -395,5 +395,93 @@ ${answers.criticalRisk}
 `;
   await fs.writeFile(path.join(deployDir, 'deploy-vps-manual.md'), manualDeployContent);
 
-  console.log('   → docs/ created');
+  // 8. .ai Project Artifacts (ADLC Infrastructure)
+  const aiDir = path.join(cwd, '.ai');
+  const adrDir = path.join(aiDir, 'adr');
+  await fs.ensureDir(adrDir);
+
+  const aiArch = `# Architecture: ${answers.projectTitle}
+
+## 1. Identity & Domain
+${answers.projectTitle} (${answers.projectName}) — ${answers.problem}
+- Core Domain: \`${answers.coreDomain}\`
+- Target Audience: ${answers.targetAudience}
+
+## 2. Stack & Runtime
+- Backend: ${answers.backendFramework}
+- ORM: ${answers.orm}
+- Frontend: ${answers.frontend}
+
+## 3. Structural Invariants
+- Enforce strict domain boundaries around \`${answers.coreDomain}\`.
+- Sensitive credentials and keys must never be logged or tracked in git.
+- Client components must not import server models or database adapters directly.
+
+## 4. Data Flows
+- Inbound requests validate schemas via Zod before business logic processing.
+- Outbound third-party calls must employ timeouts and backoff.
+`;
+  await fs.writeFile(path.join(aiDir, 'ARCHITECTURE.md'), aiArch);
+
+  const aiConv = `# Engineering Conventions: ${answers.projectTitle}
+
+## 1. Code Standards
+- Strict TypeScript: no any, explicit returns on public functions.
+- Biome for formatting and linting.
+
+## 2. Error Handling & Logging
+- Zero unredacted PII in production logs.
+- Map external errors to typed domain exceptions.
+
+## 3. Testing
+- TDD-first approach for new features.
+- Unit and integration tests must pass before pull requests.
+`;
+  await fs.writeFile(path.join(aiDir, 'CONVENTIONS.md'), aiConv);
+
+  const aiTasks = `# Common Development Tasks: ${answers.projectTitle}
+
+## 1. Standard Commands
+- \`pnpm dev\` — Start development server
+- \`pnpm typecheck\` — Run TypeScript type checking
+- \`pnpm test\` — Run Vitest suite
+- \`pnpm lint\` — Run Biome linter
+- \`pnpm build\` — Build production artifacts
+
+## 2. Feature Workflow
+1. Write reproduction/acceptance test.
+2. Implement feature fulfilling domain invariants.
+3. Validate with \`pnpm typecheck\` and \`pnpm test\`.
+`;
+  await fs.writeFile(path.join(aiDir, 'COMMON_TASKS.md'), aiTasks);
+
+  const adrTemplate = `# ADR-0000: Title of Architectural Decision
+
+**Status:** Proposed | Accepted | Deprecated | Superseded  
+**Date:** YYYY-MM-DD  
+**Deciders:** Core Engineering Team  
+
+## Context and Problem Statement
+Context and problem description.
+
+## Decision Outcome
+Chosen option and trade-offs.
+`;
+  await fs.writeFile(path.join(adrDir, '0000-template.md'), adrTemplate);
+
+  const adr0001 = `# ADR-0001: Initial Stack and Privacy Baseline
+
+**Status:** Accepted  
+**Date:** 2026-10-27  
+**Deciders:** Core Engineering Team  
+
+## Context and Problem Statement
+Initial project scaffolding requiring modern type-safe runtime and zero-leakage privacy baseline.
+
+## Decision Outcome
+Adopted ${answers.backendFramework} + ${answers.orm} + ${answers.frontend} with strict Biome linting and .ai architecture governance.
+`;
+  await fs.writeFile(path.join(adrDir, '0001-initial-stack-and-privacy-baseline.md'), adr0001);
+
+  console.log('   → docs/ and .ai/ created');
 }
