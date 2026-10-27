@@ -88,7 +88,7 @@ export async function generateWeb(cwd: string, answers: ProjectAnswers) {
     ? `import * as Sentry from '@sentry/react';\n`
     : '';
   const sentryInit = answers.useSentry
-    ? `\nSentry.init({\n  dsn: import.meta.env.VITE_SENTRY_DSN,\n  environment: import.meta.env.MODE,\n});\n`
+    ? `\nSentry.init({\n  dsn: import.meta.env.VITE_SENTRY_DSN,\n  environment: import.meta.env.MODE,\n  sendDefaultPii: false,\n});\n`
     : '';
 
   await fs.writeFile(

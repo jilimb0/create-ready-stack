@@ -187,7 +187,19 @@ export const db = drizzle(client, { schema });
       ? "import * as Sentry from '@sentry/node';\n"
       : '';
     const sentryInit = answers.useSentry
-      ? "\nSentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV });\n"
+      ? `\nSentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+  sendDefaultPii: false,
+  beforeSend(event) {
+    if (event.request?.headers) {
+      delete event.request.headers['authorization'];
+      delete event.request.headers['cookie'];
+      delete event.request.headers['x-forwarded-for'];
+    }
+    return event;
+  },
+});\n`
       : '';
 
     await fs.writeFile(
@@ -236,7 +248,19 @@ serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) }, (info) => {
       ? "import * as Sentry from '@sentry/node';\n"
       : '';
     const sentryInitEx = answers.useSentry
-      ? "\nSentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV });\n"
+      ? `\nSentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+  sendDefaultPii: false,
+  beforeSend(event) {
+    if (event.request?.headers) {
+      delete event.request.headers['authorization'];
+      delete event.request.headers['cookie'];
+      delete event.request.headers['x-forwarded-for'];
+    }
+    return event;
+  },
+});\n`
       : '';
     const sentryMiddleware = answers.useSentry
       ? "\napp.use(Sentry.Handlers.requestHandler());\napp.use(Sentry.Handlers.tracingHandler());"
