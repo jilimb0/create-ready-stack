@@ -19,3 +19,6 @@ create-ready-stack — Automated fullstack CLI generator and project scissoring 
 - Inbound requests are validated at perimeter boundaries using strict schemas.
 - Outbound third-party calls must employ timeouts, retries with backoff, and circuit breakers.
 - Zero secrets or unredacted customer PII in logs or storage snapshots.
+
+## 5. Active ADRs
+- **[ADR-0001](.ai/adr/0001-deterministic-monorepo-scaffolding-and-ai-baseline.md)** (`src/**`, `bin/**`, `tests/**`): Deterministic monorepo scaffolding (Hono 4 + Drizzle + React 19 + TanStack Query 5 + TGWrapper), pre-write directory collision guards, and built-in `.ai/` + privacy baseline generation.
