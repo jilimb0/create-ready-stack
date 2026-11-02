@@ -98,6 +98,11 @@ npx create-ready-stack init --template bot
 │   ├── 04-quality/      # Quality checklists
 │   ├── 05-release/      # Release flow
 │   └── 06-deploy/       # Deploy guides
+├── .ai/                 # AI Architecture governance baseline
+│   ├── ARCHITECTURE.md  # Domain invariants & ADR index
+│   ├── CONVENTIONS.md   # Coding & privacy standards
+│   ├── COMMON_TASKS.md  # Development workflows
+│   └── adr/             # Architectural Decision Records
 ├── docker-compose.yml   # With health checks
 ├── .github/
 │   ├── workflows/ci.yml # CI with PostgreSQL
@@ -123,6 +128,7 @@ npx create-ready-stack init --template bot
 | Docker | Docker Compose with health checks | `true` |
 | Backend | Hono 4 or Express 5 | Hono 4 |
 | ORM | Drizzle ORM or Prisma | Drizzle ORM |
+| Frontend | React 19 + Vite 8 or Next.js 15 | React 19 + Vite 8 |
 | Tailwind CSS | Tailwind CSS v4 + Vite plugin | `true` |
 | UI Library | @ui-construction-library | `true` |
 | Sentry | Error tracking (backend + frontend) | `false` |
@@ -152,6 +158,9 @@ npx create-ready-stack init --template bot
 |---------|-------------|
 | `create-ready-stack init` | Start interactive scaffolding |
 | `create-ready-stack init --force` | Overwrite existing directory |
+| `create-ready-stack init --template <saas\|tma\|bot>` | Scaffold specialized starter preset instantly |
+| `create-ready-stack upgrade` | Dry-run check existing project for upgradable config templates |
+| `create-ready-stack upgrade --apply` | Overwrite existing config files with latest templates |
 | `create-ready-stack --help` | Show help with examples |
 | `create-ready-stack --version` | Show version |
 

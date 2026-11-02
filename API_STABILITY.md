@@ -4,9 +4,13 @@
 
 ## Stable (covered by SemVer)
 
-- CLI commands: `init`, `--help`, `--version`
-- CLI flags: `--force` / `-f`
-- Generated project structure (top-level directories: `backend/`, `web/`, `bot/`, `docs/`, `.github/`)
+- CLI commands: `init`, `upgrade`, `--help`, `--version`
+- CLI flags:
+  - `--force` / `-f`: Overwrite existing directory during init
+  - `--template` / `-t`: Select starter template preset (`saas`, `tma`, `bot`)
+  - `--apply`: Overwrite outdated configuration files during upgrade
+- Starter template presets: `saas`, `tma`, `bot`
+- Generated project structure (top-level directories: `backend/`, `web/` or `apps/web/`, `bot/`, `docs/`, `.github/`, `.ai/`)
 - Generated root config files: `package.json`, `biome.json`, `tsconfig.base.json`, `.gitignore`, `.env.example`, `CHANGELOG.md`, `README.md`
 - Prompt questions (names and types in `QUESTION_BLOCKS`)
 

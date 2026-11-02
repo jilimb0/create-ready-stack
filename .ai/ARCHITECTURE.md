@@ -7,13 +7,14 @@ create-ready-stack — Automated fullstack CLI generator and project scissoring 
 - **Default Branch:** `main`
 
 ## 2. Stack & Runtime
-- **Runtime:** TypeScript, Node.js CLI, Inquirer, Fs-extra, Biome, Vitest.
-- **Directories:** `src`, `tests`, `bin`
+- **Runtime:** TypeScript, Node.js CLI, Inquirer, Yargs, Fs-extra, Biome, Vitest.
+- **Directories:** `src`, `tests`, `bin`, `docs`
 
 ## 3. Structural Invariants
 - Template generation in `src/generators` must produce deterministic, lint-clean projects.
 - Generated projects must include `.ai/` architecture baseline and strict privacy defaults.
 - Filesystem writes in `src/utils` must validate target directory non-collision before write.
+- Presets (`saas`, `tma`, `bot`) must reuse centralized dependency versions from `src/config/versions.ts`.
 
 ## 4. Data Flows & External Boundaries
 - Inbound requests are validated at perimeter boundaries using strict schemas.
@@ -22,3 +23,4 @@ create-ready-stack — Automated fullstack CLI generator and project scissoring 
 
 ## 5. Active ADRs
 - **[ADR-0001](.ai/adr/0001-deterministic-monorepo-scaffolding-and-ai-baseline.md)** (`src/**`, `bin/**`, `tests/**`): Deterministic monorepo scaffolding (Hono 4 + Drizzle + React 19 + TanStack Query 5 + TGWrapper), pre-write directory collision guards, and built-in `.ai/` + privacy baseline generation.
+- **[ADR-0002](.ai/adr/0002-starter-presets-and-domain-scaffolding.md)** (`src/generators/*.ts`, `src/commands/init.ts`): Built-in specialized starter presets (`--template saas|tma|bot`) with pre-wired payments, Telegram Stars, and webhooks under strict privacy and idempotency invariants.

@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.5.1 (2026-10-15)
+
+### Added
+- Automated CI failure reporting integration
+- Safe Sentry telemetry defaults without PII collection and strict referrer policy in templates
+- Built-in `.ai/` architecture baseline and ADR scaffolding in generated projects (`.ai/ARCHITECTURE.md`, `.ai/CONVENTIONS.md`, `.ai/COMMON_TASKS.md`, `.ai/adr/`)
+
+### Changed
+- Standardized generated `.gitignore` to ignore environment secrets, debug logs, and `.ai/artefacts/`
+- Refined starter presets documentation and relaxed Node.js engine compatibility to `>=22.0.0`
+- Aligned ambient package manager configuration with pnpm v10
+
+## 0.5.0 (2026-07-12)
+
+### Added
+- Starter template presets via `--template` (`-t`) flag (`saas`, `tma`, `bot`):
+  - **SaaS Starter (`saas`):** Next.js 15 + Drizzle ORM + Auth + `@ui-construction-library` PricingTable + Stripe/Paddle webhook routes
+  - **Telegram Mini App (`tma`):** React 19 + Hono 4 + `@tgwrapper/core` + Telegram Stars payments
+  - **Telegram Bot (`bot`):** Modern `@tgwrapper/core` webhook and polling serverless starter
+- Unit and snapshot tests for TMA and SaaS generators (`src/generators/tma.test.ts`, `src/generators/saas.test.ts`)
+- Upgraded Biome linter configuration to 2.5.3
+
+### Changed
+- CLI `init` command updated to accept `--template` option with preset validation
+
+## 0.4.0 (2026-07-11)
+
+### Added
+- Next.js 15 frontend option (`nextWeb.ts`) alongside React 19 + Vite 8
+- Comprehensive 6-level methodology documentation generator (`docs/LEVELS.md`, `01-idea`, `02-arch`, `03-impl`, `04-quality`, `05-release`, `06-deploy`)
+- Added `.nvmrc` and updated integration test matrix for Next.js generator variants
+
+## 0.3.0 (2026-07-09)
+
+### Added
+- `create-ready-stack upgrade --apply` command to overwrite outdated template configs in existing projects
+- Centralized dependency versions registry in `src/config/versions.ts`
+- GitHub Pages landing page deployment workflow (`.github/workflows/pages.yml`)
+- OIDC trusted publishing support (`--provenance`) for automated npm releases
+
+### Changed
+- Lowered Node.js engine requirement from `>=26` to `>=22`
+- Replaced legacy grammY references with `@tgwrapper/core`
+
 ## 0.2.1 (2026-06-30)
 
 ### Fixed

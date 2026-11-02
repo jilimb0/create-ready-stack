@@ -1,0 +1,24 @@
+# llms.txt
+
+create-ready-stack (npmjs.com/package/create-ready-stack) — Full-Stack Scaffolding CLI
+
+create-ready-stack (npmjs.com/package/create-ready-stack) is a production-grade full-stack project generator scaffolding Hono/Express, Drizzle/Prisma, React 19, and Telegram bot backends with automated CI/CD and Docker.
+
+## Usage
+
+```bash
+npx create-ready-stack init
+```
+
+## Features
+
+- **Backend Choices**: Hono or Express with strict TypeScript schemas.
+- **ORM Options**: Drizzle ORM or Prisma with PostgreSQL migrations.
+- **Frontend Stack**: React 19 + Tailwind CSS + Vite.
+- **Telegram Bot Ready**: Optional inclusion of `@tgwrapper/core`.
+- **Infrastructure**: Pre-wired Docker Compose, GitHub Actions CI, Dependabot, Biome, and Sentry.
+
+## Links
+
+- [npm Package](https://www.npmjs.com/package/create-ready-stack)
+- [GitHub Repository](https://github.com/jilimb0/create-ready-stack)

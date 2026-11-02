@@ -27,16 +27,20 @@ pnpm validate     # check + build
 src/
 ├── cli.ts              # CLI entry point (yargs setup)
 ├── commands/
-│   └── init.ts         # Interactive scaffolding command
+│   ├── init.ts         # Interactive scaffolding command
+│   └── upgrade.ts      # Template upgrade command (--apply)
 ├── config/
 │   └── versions.ts     # Centralized dependency versions
 ├── generators/
-│   ├── backend.ts      # Backend project generator
-│   ├── web.ts          # React frontend generator
-│   ├── bot.ts          # Telegram bot generator
+│   ├── backend.ts      # Backend project generator (Hono / Express)
+│   ├── web.ts          # React frontend generator (React 19 + Vite 8)
+│   ├── nextWeb.ts      # Next.js frontend generator
+│   ├── saas.ts         # Micro-SaaS template generator (Stripe / Paddle)
+│   ├── tma.ts          # Telegram Mini App template generator (Stars)
+│   ├── bot.ts          # Telegram bot generator (@tgwrapper/core)
 │   ├── docker.ts       # Docker Compose generator
 │   ├── ci.ts           # CI workflow generator
-│   ├── docs.ts         # 6-level methodology docs generator
+│   ├── docs.ts         # 6-level methodology & .ai baseline generator
 │   ├── monorepo.ts     # Orchestrates all generators
 │   └── packageJson.ts  # Root config files generator
 ├── types/
