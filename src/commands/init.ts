@@ -32,6 +32,8 @@ const QUESTION_BLOCKS = {
         { name: 'Web app + Telegram bot', value: 'web+bot' },
         { name: 'Telegram Mini App (TMA Fullstack: React 19 + Hono + @tgwrapper/core)', value: 'tma' },
         { name: 'Micro-SaaS Starter (Next.js 15 + Drizzle + PricingTable + Stripe)', value: 'saas' },
+        { name: 'Agent Platform & Control Room (Drizzle Traces + CAS Approval + @ui-construction-library/core)', value: 'agent' },
+        { name: 'Agent + Read-Only MCP + UDPA Gate (--template agent-mcp)', value: 'agent-mcp' },
       ],
     },
     {
@@ -138,7 +140,11 @@ async function checkForUpdate(currentVersion: string): Promise<string | null> {
 export const initCommand = {
   command: 'init',
   describe: 'Create a new project following the proven stack pattern',
-  handler: async (force = false, cliVersion?: string, templatePreset?: 'saas' | 'tma' | 'bot') => {
+  handler: async (
+    force = false,
+    cliVersion?: string,
+    templatePreset?: 'saas' | 'tma' | 'bot' | 'agent' | 'agent-mcp',
+  ) => {
     if (cliVersion) {
       const latest = await checkForUpdate(cliVersion);
       if (latest) {

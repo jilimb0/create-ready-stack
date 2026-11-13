@@ -45,14 +45,16 @@ export async function cli() {
         },
         template: {
           type: 'string',
-          describe: 'Starter template preset (saas, tma, bot)',
-          choices: ['saas', 'tma', 'bot'] as const,
+          describe: 'Starter template preset (saas, tma, bot, agent, agent-mcp)',
+          choices: ['saas', 'tma', 'bot', 'agent', 'agent-mcp'] as const,
           alias: 't',
         },
       },
       handler: async (argv) => {
         const force = (argv as { force?: boolean }).force ?? false;
-        const template = (argv as { template?: 'saas' | 'tma' | 'bot' }).template;
+        const template = (
+          argv as { template?: 'saas' | 'tma' | 'bot' | 'agent' | 'agent-mcp' }
+        ).template;
         await initCommand.handler(force, VERSION, template);
       },
     });

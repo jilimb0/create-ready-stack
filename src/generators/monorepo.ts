@@ -1,4 +1,5 @@
 import type { ProjectAnswers } from '../types/project.js';
+import { generateAgent } from './agent.js';
 import { generateBackend } from './backend.js';
 import { generateBot } from './bot.js';
 import { generateCI } from './ci.js';
@@ -9,6 +10,11 @@ import { generateTma } from './tma.js';
 import { generateWeb } from './web.js';
 
 export async function generateMonorepo(cwd: string, answers: ProjectAnswers) {
+  if (answers.format === 'agent' || answers.format === 'agent-mcp') {
+    await generateAgent(cwd, answers);
+    await generateCI(cwd, answers);
+    return;
+  }
   if (answers.format === 'tma') {
     await generateTma(cwd, answers);
     await generateCI(cwd, answers);
@@ -30,6 +36,7 @@ export async function generateMonorepo(cwd: string, answers: ProjectAnswers) {
 }
 
 export {
+  generateAgent,
   generateBackend,
   generateBot,
   generateCI,

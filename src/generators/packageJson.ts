@@ -41,8 +41,9 @@ export async function generatePackageJson(cwd: string, answers: ProjectAnswers) 
   );
 
   // pnpm-workspace.yaml
-  const packages = ['backend', 'web'];
-  if (hasBot) packages.push('bot');
+  const isAgentFormat = answers.format === 'agent' || answers.format === 'agent-mcp';
+  const packages = isAgentFormat ? ['apps/*', 'packages/*'] : ['backend', 'web'];
+  if (hasBot && !isAgentFormat) packages.push('bot');
   await fs.writeFile(
     path.join(cwd, 'pnpm-workspace.yaml'),
     `packages:

@@ -1,6 +1,7 @@
 import * as path from 'node:path';
 import fs from 'fs-extra';
 import type { ProjectAnswers } from '../types/project.js';
+import { buildUdpaGateWorkflow } from './agent.js';
 
 export async function generateCI(cwd: string, answers: ProjectAnswers) {
   const workflowsDir = path.join(cwd, '.github', 'workflows');
@@ -53,4 +54,8 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/${answers.projectName}
 `,
   );
+
+  if (answers.format === 'agent-mcp') {
+    await fs.writeFile(path.join(workflowsDir, 'udpa-gate.yml'), buildUdpaGateWorkflow());
+  }
 }

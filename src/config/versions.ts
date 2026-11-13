@@ -16,7 +16,7 @@ export const VERSIONS = {
   prisma: '^5.22.0',
 
   // Validation
-  zod: '^3.24.0',
+  zod: '^4.6.7',
 
   // Auth
   bcryptjs: '^2.4.3',
@@ -45,7 +45,7 @@ export const VERSIONS = {
   '@types/react-dom': '^19.1.0',
 
   // Bot
-  tgwrapperCore: '^0.17.0',
+  tgwrapperCore: '^0.21.0',
   tgwrapperRedis: '^0.8.0',
 
   // Root
@@ -56,7 +56,9 @@ export const VERSIONS = {
   sentryReact: '^9.0.0',
   tailwindcssVite: '^4.1.0',
   tailwindcss: '^4.1.0',
-  uiLibraryCore: '^0.1.0',
+  uiLibraryCore: '^0.10.0',
+  uiLibrarySchema: '^0.10.0',
+  uiLibraryMotion: '^0.10.0',
 } as const;
 
 export type VersionKey = keyof typeof VERSIONS;

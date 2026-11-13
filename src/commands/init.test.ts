@@ -194,4 +194,21 @@ describe('init command handler', () => {
 
     expect(await fs.pathExists(path.join(existingDir, 'docs'))).toBe(true);
   });
+
+  it('scaffolds agent-mcp preset with MCP server and UDPA gate workflow', async () => {
+    mockAnswers.set([baseAnswers, baseAnswers, baseAnswers]);
+    const { initCommand } = await import('./init.js');
+    await initCommand.handler(false, undefined, 'agent-mcp');
+
+    const projectDir = path.join(tmpDir, 'test-project');
+    expect(
+      await fs.pathExists(path.join(projectDir, 'packages', 'mcp', 'src', 'server.ts')),
+    ).toBe(true);
+    expect(
+      await fs.pathExists(path.join(projectDir, '.github', 'workflows', 'udpa-gate.yml')),
+    ).toBe(true);
+    expect(
+      await fs.pathExists(path.join(projectDir, '.github', 'workflows', 'ci.yml')),
+    ).toBe(true);
+  });
 });
