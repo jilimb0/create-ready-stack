@@ -51,4 +51,13 @@ describe('versions', () => {
       expect(version(key)).toBe(VERSIONS[key]);
     }
   });
+
+  it('contains UI Library and SaaS billing/framework versions', () => {
+    expect(VERSIONS.uiLibraryCore).toBe('^0.11.0');
+    expect(VERSIONS.uiLibrarySchema).toBe('^0.11.0');
+    expect(VERSIONS.uiLibraryMotion).toBe('^0.11.0');
+    expect(VERSIONS.uiLibraryTokens).toBe('^0.11.0');
+    expect(VERSIONS.next).toBe('^15.3.0');
+    expect(VERSIONS.stripe).toBe('^17.5.0');
+  });
 });

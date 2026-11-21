@@ -304,4 +304,44 @@ describe('init command handler', () => {
     expect(agentsMd).toContain('`mvp.md`');
     logSpy.mockRestore();
   });
+
+  it('scaffolds SaaS with read-only MCP and TerminalShell when withMcp is true in headless mode', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const { initCommand } = await import('./init.js');
+    await initCommand.handler(true, '0.6.0', 'saas', {
+      agent: true,
+      withMcp: true,
+      name: 'saas-mcp-app',
+      title: 'SaaS MCP App',
+      domain: 'subscriptions',
+      problem: 'Financial billing analytics',
+    });
+
+    const projectDir = path.join(tmpDir, 'saas-mcp-app');
+    expect(
+      await fs.pathExists(path.join(projectDir, 'packages', 'mcp', 'src', 'server.ts')),
+    ).toBe(true);
+    expect(
+      await fs.pathExists(path.join(projectDir, '.github', 'workflows', 'udpa-gate.yml')),
+    ).toBe(true);
+    expect(
+      await fs.pathExists(path.join(projectDir, 'apps', 'web', 'app', 'dashboard', 'page.tsx')),
+    ).toBe(true);
+    expect(
+      await fs.pathExists(path.join(projectDir, 'apps', 'web', 'components', 'TerminalShell.tsx')),
+    ).toBe(true);
+
+    const workspaceYaml = await fs.readFile(path.join(projectDir, 'pnpm-workspace.yaml'), 'utf-8');
+    expect(workspaceYaml).toContain("'apps/*'");
+    expect(workspaceYaml).toContain("'packages/*'");
+
+    const mcpServer = await fs.readFile(
+      path.join(projectDir, 'packages', 'mcp', 'src', 'server.ts'),
+      'utf-8',
+    );
+    expect(mcpServer).toContain('bds://saas-mcp-app/lineage-citations');
+    expect(mcpServer).toContain('bds://saas-mcp-app/active-workspace-context');
+    logSpy.mockRestore();
+  });
 });

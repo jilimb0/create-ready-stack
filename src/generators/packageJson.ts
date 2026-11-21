@@ -41,9 +41,10 @@ export async function generatePackageJson(cwd: string, answers: ProjectAnswers) 
   );
 
   // pnpm-workspace.yaml
-  const isAgentFormat = answers.format === 'agent' || answers.format === 'agent-mcp';
-  const packages = isAgentFormat ? ['apps/*', 'packages/*'] : ['backend', 'web'];
-  if (hasBot && !isAgentFormat) packages.push('bot');
+  const isWorkspaceMonorepo =
+    answers.format === 'agent' || answers.format === 'agent-mcp' || answers.format === 'saas';
+  const packages = isWorkspaceMonorepo ? ['apps/*', 'packages/*'] : ['backend', 'web'];
+  if (hasBot && !isWorkspaceMonorepo) packages.push('bot');
   await fs.writeFile(
     path.join(cwd, 'pnpm-workspace.yaml'),
     `packages:

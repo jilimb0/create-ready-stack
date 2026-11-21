@@ -33,6 +33,7 @@ export const VERSIONS = {
   '@types/bcryptjs': '^2.4.0',
 
   // Frontend
+  next: '^15.3.0',
   react: '^19.1.0',
   reactDom: '^19.1.0',
   reactRouterDom: '^7.5.0',
@@ -43,6 +44,9 @@ export const VERSIONS = {
   jsdom: '^26.0.0',
   '@types/react': '^19.1.0',
   '@types/react-dom': '^19.1.0',
+
+  // Billing
+  stripe: '^17.5.0',
 
   // Bot
   tgwrapperCore: '^0.21.0',
@@ -56,9 +60,10 @@ export const VERSIONS = {
   sentryReact: '^9.0.0',
   tailwindcssVite: '^4.1.0',
   tailwindcss: '^4.1.0',
-  uiLibraryCore: '^0.10.0',
-  uiLibrarySchema: '^0.10.0',
-  uiLibraryMotion: '^0.10.0',
+  uiLibraryCore: '^0.11.0',
+  uiLibrarySchema: '^0.11.0',
+  uiLibraryMotion: '^0.11.0',
+  uiLibraryTokens: '^0.11.0',
 } as const;
 
 export type VersionKey = keyof typeof VERSIONS;

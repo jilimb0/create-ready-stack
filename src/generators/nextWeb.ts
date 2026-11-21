@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import fs from 'fs-extra';
+import { version } from '../config/versions.js';
 import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateNextWeb(cwd: string, answers: ProjectAnswers) {
@@ -9,12 +10,12 @@ export async function generateNextWeb(cwd: string, answers: ProjectAnswers) {
   await fs.ensureDir(path.join(dir, 'app', 'register'));
   await fs.ensureDir(path.join(dir, 'components'));
 
-  const uilibDep = answers.useUILibrary ? ',\n    "@ui-construction-library/core": "^0.5.0"' : '';
-  const sentryDep = answers.useSentry
-    ? ',\n    "@sentry/nextjs": "^9.0.0"'
+  const uilibDep = answers.useUILibrary
+    ? `,\n    "@ui-construction-library/core": "${version('uiLibraryCore')}"`
     : '';
+  const sentryDep = answers.useSentry ? ',\n    "@sentry/nextjs": "^9.0.0"' : '';
   const tailwindDeps = answers.useTailwind
-    ? ',\n    "tailwindcss": "^4.1.0"'
+    ? `,\n    "tailwindcss": "${version('tailwindcss')}"`
     : '';
 
   await fs.writeFile(
@@ -32,20 +33,20 @@ export async function generateNextWeb(cwd: string, answers: ProjectAnswers) {
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "next": "^15.3.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@tanstack/react-query": "^5.75.0"${uilibDep}${sentryDep}
+    "next": "${version('next')}",
+    "react": "${version('react')}",
+    "react-dom": "${version('reactDom')}",
+    "@tanstack/react-query": "${version('tanstackQuery')}"${uilibDep}${sentryDep}
   },
   "devDependencies": {
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
-    "@types/node": "^26.0.0",
-    "typescript": "^5.7.0",
-    "vitest": "^3.2.0",
-    "@testing-library/react": "^16.3.0",
-    "@vitejs/plugin-react": "^4.4.0",
-    "jsdom": "^26.0.0"${tailwindDeps}
+    "@types/react": "${version('@types/react')}",
+    "@types/react-dom": "${version('@types/react-dom')}",
+    "@types/node": "${version('@types/node')}",
+    "typescript": "${version('typescript')}",
+    "vitest": "${version('vitest')}",
+    "@testing-library/react": "${version('testingLibraryReact')}",
+    "@vitejs/plugin-react": "${version('vitePluginReact')}",
+    "jsdom": "${version('jsdom')}"${tailwindDeps}
   }
 }
 `,

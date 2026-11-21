@@ -2,6 +2,12 @@ import * as path from 'node:path';
 import fs from 'fs-extra';
 import { version } from '../config/versions.js';
 import type { ProjectAnswers } from '../types/project.js';
+import { buildMcpPackageFiles } from './agent.js';
+import {
+  buildEntityJsonLd,
+  buildLlmsTxt,
+  buildTerminalShellSource,
+} from './terminalKit.js';
 
 export async function generateSaas(cwd: string, answers: ProjectAnswers) {
   // 1. Next.js 15 Fullstack SaaS Web App
@@ -11,6 +17,7 @@ export async function generateSaas(cwd: string, answers: ProjectAnswers) {
   await fs.ensureDir(path.join(webDir, 'app', 'api', 'webhooks', 'stripe'));
   await fs.ensureDir(path.join(webDir, 'app', 'api', 'webhooks', 'paddle'));
   await fs.ensureDir(path.join(webDir, 'components'));
+  await fs.ensureDir(path.join(webDir, 'public'));
 
   await fs.writeFile(
     path.join(webDir, 'package.json'),
@@ -27,14 +34,15 @@ export async function generateSaas(cwd: string, answers: ProjectAnswers) {
           test: 'vitest run',
         },
         dependencies: {
-          next: '^15.3.0',
+          next: version('next'),
           react: version('react'),
           'react-dom': version('reactDom'),
-          '@ui-construction-library/core': '^0.9.0',
-          '@ui-construction-library/tokens': '^0.6.0',
+          '@ui-construction-library/core': version('uiLibraryCore'),
+          '@ui-construction-library/schema': version('uiLibrarySchema'),
+          '@ui-construction-library/tokens': version('uiLibraryTokens'),
           'drizzle-orm': version('drizzleOrm'),
           postgres: version('postgres'),
-          stripe: '^17.5.0',
+          stripe: version('stripe'),
         },
         devDependencies: {
           '@types/node': version('@types/node'),
@@ -48,6 +56,323 @@ export async function generateSaas(cwd: string, answers: ProjectAnswers) {
       null,
       2,
     ),
+  );
+
+  // Entity SEO / GEO Artifacts (Axis 8)
+  const entityJsonLd = JSON.stringify(
+    buildEntityJsonLd({
+      projectName: answers.projectName,
+      projectTitle: answers.projectTitle,
+      problem: answers.problem,
+    }),
+  );
+
+  await fs.writeFile(
+    path.join(webDir, 'app', 'layout.tsx'),
+    `import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+
+export const metadata: Metadata = {
+  title: '${answers.projectTitle}',
+  description: '${answers.projectTitle} (${answers.projectName}) is a SaaS platform for ${answers.problem}.',
+};
+
+const ENTITY_GRAPH_JSON = ${JSON.stringify(entityJsonLd)};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: ENTITY_GRAPH_JSON }}
+        />
+      </head>
+      <body className="min-h-screen bg-[#0b0f19] text-slate-100">
+        <noscript>
+          <h1>${answers.projectTitle} (${answers.projectName})</h1>
+          <p>${answers.projectTitle} (${answers.projectName}) is a SaaS platform for ${answers.problem}.</p>
+          <nav aria-label="Primary routes">
+            <a href="/">Home</a>
+            <a href="/pricing">Pricing</a>
+            <a href="/dashboard">Dashboard</a>
+          </nav>
+        </noscript>
+        {children}
+      </body>
+    </html>
+  );
+}
+`,
+  );
+
+  await fs.writeFile(
+    path.join(webDir, 'public', 'llms.txt'),
+    buildLlmsTxt({
+      projectName: answers.projectName,
+      projectTitle: answers.projectTitle,
+      problem: answers.problem,
+      routes: ['/', '/pricing', '/dashboard'],
+    }),
+  );
+
+  // Client TerminalShell (Next.js 15 "use client")
+  await fs.writeFile(
+    path.join(webDir, 'components', 'TerminalShell.tsx'),
+    buildTerminalShellSource({
+      projectName: answers.projectName,
+      projectTitle: answers.projectTitle,
+      useClientDirective: true,
+      defaultGroup: 'green',
+      defaultEntity: 'SUB-001',
+    }),
+  );
+
+  // Terminal Dashboard Page (4 UI states + Green-linked Panels + Minor-Unit Audit)
+  await fs.writeFile(
+    path.join(webDir, 'app', 'dashboard', 'page.tsx'),
+    `'use client';
+
+import { useEffect, useState } from 'react';
+import { LinkedPanel, WidgetLinkProvider } from '@ui-construction-library/core';
+import type { FundamentalLineageCitation } from '@ui-construction-library/schema';
+import {
+  TerminalShell,
+  buildLineageDatasetProps,
+  formatMinorUsd,
+} from '../../components/TerminalShell';
+
+type DashboardViewState = 'default' | 'loading' | 'empty' | 'error';
+
+interface SubscriptionRecord {
+  id: string;
+  symbol: string;
+  planName: string;
+  status: 'active' | 'trialing';
+  amountMinor: number;
+  idempotencyKey: string;
+  citation: FundamentalLineageCitation;
+}
+
+const SAMPLE_SUBSCRIPTIONS: SubscriptionRecord[] = [
+  {
+    id: 'sub-001',
+    symbol: 'SUB-001',
+    planName: 'Pro Monthly',
+    status: 'active',
+    amountMinor: 4900,
+    idempotencyKey: 'idem-sub-001-2026-01',
+    citation: {
+      accessionNumber: 'ACC-SAAS-001',
+      metricCode: 'MRR_PRO_MINOR',
+      valueMinor: 4900,
+      sourceByteOffset: 128,
+      sourceByteLength: 24,
+    },
+  },
+  {
+    id: 'sub-002',
+    symbol: 'SUB-002',
+    planName: 'Enterprise Annual',
+    status: 'active',
+    amountMinor: 190000,
+    idempotencyKey: 'idem-sub-002-2026-01',
+    citation: {
+      accessionNumber: 'ACC-SAAS-002',
+      metricCode: 'ARR_ENT_MINOR',
+      valueMinor: 190000,
+      sourceByteOffset: 512,
+      sourceByteLength: 32,
+    },
+  },
+];
+
+export default function DashboardPage() {
+  const [viewState, setViewState] = useState<DashboardViewState>('default');
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(
+    SAMPLE_SUBSCRIPTIONS[0]?.symbol ?? 'SUB-001',
+  );
+  const [inspectedCitation, setInspectedCitation] = useState<FundamentalLineageCitation | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const symbolParam = params.get('symbol');
+      if (symbolParam && SAMPLE_SUBSCRIPTIONS.some((item) => item.symbol === symbolParam)) {
+        setSelectedSymbol(symbolParam);
+      }
+    }
+  }, []);
+
+  const activeSubscription =
+    SAMPLE_SUBSCRIPTIONS.find((item) => item.symbol === selectedSymbol) ?? SAMPLE_SUBSCRIPTIONS[0];
+
+  const totalMrrMinor = SAMPLE_SUBSCRIPTIONS.reduce((acc, item) => acc + item.amountMinor, 0);
+
+  return (
+    <WidgetLinkProvider syncUrl={true}>
+      <TerminalShell
+        withProvider={false}
+        onInspectLineage={(citation) => setInspectedCitation(citation)}
+        onExecuteMnemonic={(cmd) => {
+          const matched = SAMPLE_SUBSCRIPTIONS.find((item) => item.symbol === cmd.entity);
+          if (matched) {
+            setSelectedSymbol(matched.symbol);
+          }
+        }}
+      >
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-50">${answers.projectTitle} Terminal</h1>
+              <p className="text-xs text-slate-400">
+                Green-linked billing entities, integer minor-unit KPIs, and source lineage audit
+              </p>
+            </div>
+            <fieldset aria-label="Dashboard state switcher" className="flex items-center gap-2 border-0 p-0 m-0">
+              {(['default', 'loading', 'empty', 'error'] as const).map((stateKey) => (
+                <button
+                  key={stateKey}
+                  type="button"
+                  aria-pressed={viewState === stateKey}
+                  onClick={() => setViewState(stateKey)}
+                  className="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-mono text-slate-200 hover:bg-slate-800"
+                >
+                  {stateKey}
+                </button>
+              ))}
+            </fieldset>
+          </div>
+
+          {viewState === 'loading' && (
+            <section
+              role="status"
+              aria-busy="true"
+              className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-sm text-slate-300"
+            >
+              Loading subscription ledger and billing KPIs...
+            </section>
+          )}
+
+          {viewState === 'empty' && (
+            <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-center space-y-3">
+              <p className="text-sm text-slate-300">No active subscriptions or billing transactions yet.</p>
+              <button
+                type="button"
+                onClick={() => setViewState('default')}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white"
+              >
+                Restore Sample Ledger
+              </button>
+            </section>
+          )}
+
+          {viewState === 'error' && (
+            <section
+              role="alert"
+              className="rounded-xl border border-rose-500/40 bg-rose-950/30 p-6 flex items-center justify-between gap-4"
+            >
+              <p className="text-sm text-rose-200">
+                Unable to reach billing read model. Retry or inspect webhook dead-letter queue.
+              </p>
+              <button
+                type="button"
+                onClick={() => setViewState('default')}
+                className="rounded-lg border border-rose-400/50 px-3 py-1.5 text-xs font-medium text-rose-100"
+              >
+                Retry
+              </button>
+            </section>
+          )}
+
+          {viewState === 'default' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <div className="lg:col-span-5">
+                <LinkedPanel group="green" title="Subscriptions &amp; Billing Entities">
+                  <ul className="space-y-2" aria-label="Subscription ledger">
+                    {SAMPLE_SUBSCRIPTIONS.map((item) => (
+                      <li
+                        key={item.id}
+                        className="rounded-lg border border-slate-800 bg-slate-950/60 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSymbol(item.symbol)}
+                            aria-current={item.symbol === selectedSymbol ? 'true' : undefined}
+                            className="text-left font-mono text-xs font-semibold text-emerald-300 hover:underline"
+                          >
+                            {item.symbol} · {item.planName}
+                          </button>
+                          <span className="font-mono text-xs text-slate-200">
+                            {formatMinorUsd(item.amountMinor)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] font-mono text-slate-400">
+                          Key: {item.idempotencyKey}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </LinkedPanel>
+              </div>
+
+              <div className="lg:col-span-7">
+                <LinkedPanel group="green" title="KPI &amp; Click-to-Source Audit">
+                  {activeSubscription ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                          <div className="text-xs text-slate-400">Selected Plan Minor Units</div>
+                          <div className="mt-1 text-xl font-mono font-bold text-slate-50">
+                            {formatMinorUsd(activeSubscription.amountMinor)}
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                          <div className="text-xs text-slate-400">Total Ledger Minor Units</div>
+                          <div className="mt-1 text-xl font-mono font-bold text-emerald-300">
+                            {formatMinorUsd(totalMrrMinor)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                        <div>
+                          <div className="text-xs font-mono text-slate-300">
+                            {activeSubscription.citation.metricCode}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            Accession {activeSubscription.citation.accessionNumber}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          {...buildLineageDatasetProps(activeSubscription.citation)}
+                          className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-mono text-emerald-300 hover:bg-emerald-500/20"
+                        >
+                          Inspect Source Lineage
+                        </button>
+                      </div>
+
+                      {inspectedCitation && (
+                        <p className="text-xs font-mono text-emerald-300">
+                          Auditing {inspectedCitation.accessionNumber} ({formatMinorUsd(inspectedCitation.valueMinor)})
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+                </LinkedPanel>
+              </div>
+            </div>
+          )}
+        </div>
+      </TerminalShell>
+    </WidgetLinkProvider>
+  );
+}
+`,
   );
 
   // Pricing Page with UI-Library PricingTable
@@ -272,7 +597,7 @@ export default function HomePage() {
 
   await fs.writeFile(
     path.join(dbDir, 'src/schema.ts'),
-    `import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+    `import { integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -290,7 +615,21 @@ export const subscriptions = pgTable('subscriptions', {
   userId: uuid('user_id').references(() => users.id).notNull(),
   planId: text('plan_id').notNull(),
   status: text('status').notNull(),
+  amountMinor: integer('amount_minor').notNull().default(0),
+  currency: text('currency').notNull().default('USD'),
+  idempotencyKey: text('idempotency_key').notNull().unique(),
   currentPeriodEnd: timestamp('current_period_end'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const billingTransactions = pgTable('billing_transactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  subscriptionId: text('subscription_id').references(() => subscriptions.id).notNull(),
+  provider: text('provider').notNull(),
+  amountMinor: integer('amount_minor').notNull(),
+  currency: text('currency').notNull().default('USD'),
+  idempotencyKey: text('idempotency_key').notNull().unique(),
+  status: text('status').notNull().default('recorded'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 `,
@@ -375,4 +714,14 @@ jobs:
         run: pnpm -r test
 `,
   );
+
+  // 5. Optional Read-Only MCP Server + UDPA Gate (--with-mcp)
+  if (answers.includeMcp) {
+    const mcpFiles = buildMcpPackageFiles(answers.projectName);
+    for (const file of mcpFiles) {
+      const targetPath = path.join(cwd, file.path);
+      await fs.ensureDir(path.dirname(targetPath));
+      await fs.writeFile(targetPath, file.content);
+    }
+  }
 }

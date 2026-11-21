@@ -65,6 +65,18 @@ describe('generatePackageJson', () => {
     expect(workspace).not.toContain("'bot'");
   });
 
+  it('uses apps/* and packages/* workspace globs for saas and agent formats', async () => {
+    await generatePackageJson(tmpDir, { ...defaultAnswers, format: 'saas' });
+    const saasWorkspace = await fs.readFile(path.join(tmpDir, 'pnpm-workspace.yaml'), 'utf-8');
+    expect(saasWorkspace).toContain("'apps/*'");
+    expect(saasWorkspace).toContain("'packages/*'");
+
+    await generatePackageJson(tmpDir, { ...defaultAnswers, format: 'agent-mcp' });
+    const agentWorkspace = await fs.readFile(path.join(tmpDir, 'pnpm-workspace.yaml'), 'utf-8');
+    expect(agentWorkspace).toContain("'apps/*'");
+    expect(agentWorkspace).toContain("'packages/*'");
+  });
+
   it('creates biome.json with valid schema', async () => {
     await generatePackageJson(tmpDir, defaultAnswers);
     const biome = await fs.readJson(path.join(tmpDir, 'biome.json'));

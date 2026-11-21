@@ -16,6 +16,7 @@ import { isDirectoryEmpty, isSpecOnlyDirectory } from '../utils/fileSystem.js';
 export interface InitAgentOptions {
   agent?: boolean;
   inPlace?: boolean;
+  withMcp?: boolean;
   name?: string;
   title?: string;
   domain?: string;
@@ -119,6 +120,13 @@ const QUESTION_BLOCKS = {
       message: 'Include Sentry error tracking?',
       default: false,
     },
+    {
+      type: 'confirm',
+      name: 'includeMcp',
+      message: 'Include read-only stdio MCP server (packages/mcp)?',
+      default: false,
+      when: (currentAnswers: { format?: string }) => currentAnswers.format === 'saas',
+    },
   ],
 
   level01: [
@@ -219,6 +227,7 @@ export const initCommand = {
       const selectedFormat = (templatePreset ?? 'saas') as ProjectAnswers['format'];
       const includeBot =
         selectedFormat === 'web+bot' || selectedFormat === 'bot' || selectedFormat === 'tma';
+      const includeMcp = Boolean(agentOptions?.withMcp || selectedFormat === 'agent-mcp');
 
       answers = {
         projectName,
@@ -233,6 +242,7 @@ export const initCommand = {
         orm: 'drizzle',
         useUILibrary: true,
         includeBot,
+        includeMcp,
         problem: agentOptions?.problem ?? 'Production-grade core-first application',
         targetAudience: 'Developers and teams',
         mainScenario: 'Authenticate, execute core domain workflow, and observe telemetry',
@@ -285,6 +295,9 @@ export const initCommand = {
         (templatePreset as typeof generalAnswers.format) || generalAnswers.format;
       const includeBot =
         selectedFormat === 'web+bot' || selectedFormat === 'bot' || selectedFormat === 'tma';
+      const includeMcp = Boolean(
+        agentOptions?.withMcp || selectedFormat === 'agent-mcp' || generalAnswers.includeMcp,
+      );
 
       answers = {
         projectName,
@@ -299,6 +312,7 @@ export const initCommand = {
         orm: generalAnswers.orm,
         useUILibrary: generalAnswers.useUILibrary,
         includeBot,
+        includeMcp,
         problem: level01Answers.problem,
         targetAudience: level01Answers.targetAudience,
         mainScenario: level01Answers.mainScenario,
@@ -344,6 +358,7 @@ export const initCommand = {
       `   Frontend:  ${answers.frontend === 'nextjs' ? 'Next.js 15 + React 19' : 'React 19 + Vite 8 + TanStack Query 5'}`,
     );
     if (answers.includeBot) console.log('   Bot:       @tgwrapper/core');
+    if (answers.includeMcp) console.log('   MCP:       Read-only stdio MCP (packages/mcp)');
     if (answers.useUILibrary) console.log('   UI:        @ui-construction-library');
     if (answers.useTailwind) console.log('   CSS:       Tailwind CSS v4');
     if (answers.useSentry) console.log('   Monitoring: Sentry');

@@ -67,6 +67,11 @@ export async function cli() {
           describe: 'Initialize directly inside the current working directory',
           default: false,
         },
+        'with-mcp': {
+          type: 'boolean',
+          describe: 'Include read-only stdio MCP server (packages/mcp) and UDPA gate workflow',
+          default: false,
+        },
         'print-prompt': {
           type: 'boolean',
           describe: 'Print the universal AI agent launch prompt after scaffolding',
@@ -98,6 +103,7 @@ export async function cli() {
           template?: 'saas' | 'tma' | 'bot' | 'agent' | 'agent-mcp';
           agent?: boolean;
           inPlace?: boolean;
+          withMcp?: boolean;
           printPrompt?: boolean;
           name?: string;
           title?: string;
@@ -108,6 +114,7 @@ export async function cli() {
         const agentOptions: InitAgentOptions = {
           agent: parsed.agent,
           inPlace: parsed.inPlace,
+          withMcp: parsed.withMcp,
           printPrompt: parsed.printPrompt,
           name: parsed.name,
           title: parsed.title,

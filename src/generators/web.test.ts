@@ -2,6 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import fs from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { VERSIONS } from '../config/versions.js';
 import type { ProjectAnswers } from '../types/project.js';
 import { generateWeb } from './web.js';
 
@@ -50,18 +51,56 @@ describe('generateWeb', () => {
     await generateWeb(tmpDir, baseAnswers);
     const pkg = await fs.readJson(path.join(tmpDir, 'web', 'package.json'));
     expect(pkg.name).toBe('@test-project/web');
-    expect(pkg.dependencies.react).toBe('^19.1.0');
-    expect(pkg.dependencies['react-dom']).toBe('^19.1.0');
-    expect(pkg.dependencies['react-router-dom']).toBe('^7.5.0');
-    expect(pkg.dependencies['@tanstack/react-query']).toBe('^5.75.0');
-    expect(pkg.dependencies.zod).toBe('^3.24.0');
-    expect(pkg.dependencies['@ui-construction-library/core']).toBe('^0.1.0');
+    expect(pkg.dependencies.react).toBe(VERSIONS.react);
+    expect(pkg.dependencies['react-dom']).toBe(VERSIONS.reactDom);
+    expect(pkg.dependencies['react-router-dom']).toBe(VERSIONS.reactRouterDom);
+    expect(pkg.dependencies['@tanstack/react-query']).toBe(VERSIONS.tanstackQuery);
+    expect(pkg.dependencies.zod).toBe(VERSIONS.zod);
+    expect(pkg.dependencies['@ui-construction-library/core']).toBe(VERSIONS.uiLibraryCore);
+    expect(pkg.dependencies['@ui-construction-library/schema']).toBe(VERSIONS.uiLibrarySchema);
+    expect(pkg.dependencies['@ui-construction-library/tokens']).toBe(VERSIONS.uiLibraryTokens);
+
+    const versionValues = new Set<string>(Object.values(VERSIONS));
+    for (const ver of Object.values(pkg.dependencies as Record<string, string>)) {
+      expect(versionValues.has(ver)).toBe(true);
+    }
+    for (const ver of Object.values(pkg.devDependencies as Record<string, string>)) {
+      expect(versionValues.has(ver)).toBe(true);
+    }
   });
 
   it('generates web package.json without UI library', async () => {
     await generateWeb(tmpDir, { ...baseAnswers, useUILibrary: false });
     const pkg = await fs.readJson(path.join(tmpDir, 'web', 'package.json'));
     expect(pkg.dependencies['@ui-construction-library/core']).toBeUndefined();
+    expect(pkg.dependencies['@ui-construction-library/schema']).toBeUndefined();
+    expect(pkg.dependencies['@ui-construction-library/tokens']).toBeUndefined();
+    expect(
+      await fs.pathExists(path.join(tmpDir, 'web', 'src', 'components', 'TerminalShell.tsx')),
+    ).toBe(false);
+  });
+
+  it('generates TerminalShell with CommandPalette and WidgetLinkProvider when useUILibrary is true', async () => {
+    await generateWeb(tmpDir, baseAnswers);
+    const terminalShell = await fs.readFile(
+      path.join(tmpDir, 'web', 'src', 'components', 'TerminalShell.tsx'),
+      'utf-8',
+    );
+    expect(terminalShell).toContain('CommandPalette');
+    expect(terminalShell).toContain('WidgetLinkProvider');
+    expect(terminalShell).toContain('SourceLineageDrawer');
+
+    const appTsx = await fs.readFile(path.join(tmpDir, 'web', 'src', 'App.tsx'), 'utf-8');
+    expect(appTsx).toContain('WidgetLinkProvider');
+    expect(appTsx).toContain('TerminalShell');
+    expect(appTsx).toContain('LinkedPanel');
+    expect(appTsx).toContain("'loading'");
+    expect(appTsx).toContain("'empty'");
+    expect(appTsx).toContain("'error'");
+    expect(appTsx).toContain("'default'");
+
+    const llmsTxt = await fs.readFile(path.join(tmpDir, 'web', 'public', 'llms.txt'), 'utf-8');
+    expect(llmsTxt).toContain('Test Project');
   });
 
   it('generates index.html', async () => {

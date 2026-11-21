@@ -11,6 +11,7 @@ export interface ProjectAnswers {
   orm: 'drizzle' | 'prisma';
   useUILibrary: boolean;
   includeBot: boolean;
+  includeMcp?: boolean;
 
   problem: string;
   targetAudience: string;

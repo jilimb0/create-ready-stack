@@ -25,8 +25,8 @@ export async function generateTma(cwd: string, answers: ProjectAnswers) {
         dependencies: {
           react: version('react'),
           'react-dom': version('reactDom'),
-          '@ui-construction-library/core': '^0.9.0',
-          '@ui-construction-library/tokens': '^0.6.0',
+          '@ui-construction-library/core': version('uiLibraryCore'),
+          '@ui-construction-library/tokens': version('uiLibraryTokens'),
         },
         devDependencies: {
           '@types/react': version('@types/react'),
@@ -226,7 +226,7 @@ body {
         },
         dependencies: {
           '@hono/node-server': version('honoNodeServer'),
-          '@tgwrapper/core': '^0.20.0',
+          '@tgwrapper/core': version('tgwrapperCore'),
           hono: version('hono'),
         },
         devDependencies: {
