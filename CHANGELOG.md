@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 (2026-11-21)
+
+### Added
+- Universal English Core-First AI agent launch prompt (`create-ready-stack prompt` and `docs/AGENT_LAUNCH_PROMPT.md`) synthesizing the 19-project ecosystem donor catalog and 8 domain invariant axes
+- Zero-Prompt Autonomous Startup protocol: automatic generation of root `AGENTS.md`, `CLAUDE.md`, and `.ai/AGENT_PROMPT.md` with pre-existing `*.md` spec discovery in every scaffolded repository
+- Headless AI agent scaffolding (`create-ready-stack init --agent --in-place`) with `isSpecOnlyDirectory()` detection and automatic AI agent environment detection (`AI_AGENT`, `CLAUDECODE`, `ANTIGRAVITY_AGENT`, `CURSOR_AGENT`, `OPENCODE`, `CODEX_CLI`, `AIDER`)
+- Agent orchestration template preset (`--template agent` and `--template agent-mcp`) with Drizzle trace schema, CAS approval gates, Control Room UI, and `stdio` MCP 2024-11-05 server (`ADR-0003` & `ADR-0004`)
+
 ## 0.5.1 (2026-10-15)
 
 ### Added

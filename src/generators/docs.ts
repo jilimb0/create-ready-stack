@@ -1,8 +1,42 @@
 import * as path from 'node:path';
 import fs from 'fs-extra';
+import {
+  buildProjectAgentsMd,
+  buildProjectClaudeMd,
+  buildUniversalAgentPrompt,
+} from '../config/agentPrompt.js';
 import type { ProjectAnswers } from '../types/project.js';
 
+const GENERATED_ROOT_MARKDOWN_FILES = new Set([
+  'README.md',
+  'CHANGELOG.md',
+  'AGENTS.md',
+  'CLAUDE.md',
+  'API_STABILITY.md',
+  'CONTRIBUTING.md',
+  'LICENSE.md',
+  'LICENSE',
+]);
+
+async function discoverSpecMarkdownFiles(cwd: string): Promise<string[]> {
+  try {
+    const entries = await fs.readdir(cwd, { withFileTypes: true });
+    return entries
+      .filter(
+        (entry) =>
+          entry.isFile() &&
+          entry.name.toLowerCase().endsWith('.md') &&
+          !GENERATED_ROOT_MARKDOWN_FILES.has(entry.name),
+      )
+      .map((entry) => entry.name)
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
 export async function generateDocs(cwd: string, answers: ProjectAnswers) {
+  const discoveredSpecs = await discoverSpecMarkdownFiles(cwd);
   const docsBase = path.join(cwd, 'docs');
 
   // 1. Level 01 - Idea
@@ -420,8 +454,15 @@ ${answers.projectTitle} (${answers.projectName}) — ${answers.problem}
 ## 4. Data Flows
 - Inbound requests validate schemas via Zod before business logic processing.
 - Outbound third-party calls must employ timeouts and backoff.
+
+## 5. Active ADRs
+- **[ADR-0001](.ai/adr/0001-initial-stack-and-privacy-baseline.md)** (\`backend/**\`, \`web/**\`, \`apps/**\`, \`packages/**\`): Initial stack baseline (${answers.backendFramework} + ${answers.orm} + ${answers.frontend}), privacy guardrails, and core-first agent execution via \`.ai/AGENT_PROMPT.md\`.
 `;
+  const promptContext = { ...answers, discoveredSpecs };
   await fs.writeFile(path.join(aiDir, 'ARCHITECTURE.md'), aiArch);
+  await fs.writeFile(path.join(aiDir, 'AGENT_PROMPT.md'), buildUniversalAgentPrompt(promptContext));
+  await fs.writeFile(path.join(cwd, 'AGENTS.md'), buildProjectAgentsMd(promptContext));
+  await fs.writeFile(path.join(cwd, 'CLAUDE.md'), buildProjectClaudeMd(promptContext));
 
   const aiConv = `# Engineering Conventions: ${answers.projectTitle}
 
@@ -474,6 +515,7 @@ Chosen option and trade-offs.
 **Status:** Accepted  
 **Date:** 2026-10-27  
 **Deciders:** Core Engineering Team  
+**Applies-To:** \`backend/**\`, \`web/**\`, \`apps/**\`, \`packages/**\`
 
 ## Context and Problem Statement
 Initial project scaffolding requiring modern type-safe runtime and zero-leakage privacy baseline.

@@ -26,11 +26,14 @@ CLI scaffolding tool that generates production-ready full-stack projects with th
 - Every project gets `docs/` with 6-level methodology markdown and `.ai/` architectural baseline
 - Generated projects include CI workflows, Docker/Compose, Biome, and privacy-first defaults
 
-## Starter Presets (Templates)
+## Starter Presets (Templates) & AI Agent Mode
 - `--template saas` — Micro-SaaS with Next.js 15, Drizzle ORM, Stripe/Paddle billing webhooks, and `@ui-construction-library` PricingTable
 - `--template tma` — Telegram Mini App with React 19, Hono, `@tgwrapper/core`, and Telegram Stars payments
 - `--template bot` — Telegram Bot with `@tgwrapper/core` serverless webhook and polling handlers
+- `--template agent` / `--template agent-mcp` — Agent orchestration platform with Drizzle traces, CAS approval gates, Control Room UI, and stdio MCP server
+- `npx create-ready-stack prompt` — Prints the canonical universal English AI agent launch prompt (Core-First & Ecosystem Donors); canonical reference saved in `docs/AGENT_LAUNCH_PROMPT.md`
+- `npx create-ready-stack init --agent --template <saas|tma|bot|agent|agent-mcp> --name <slug>` — Non-interactive AI agent scaffolding (supports `--in-place` for spec-only folders); automatically discovers top-level `*.md` specs, generates root `AGENTS.md`, `CLAUDE.md`, and `.ai/AGENT_PROMPT.md`, and emits `[AI_AGENT_MODE_DETECTED]` guidance when invoked by an AI agent
 
 ## Architecture Governance & Upgrades
 - `src/commands/upgrade.ts` supports `--apply` flag to overwrite configuration files (`biome.json`, `tsconfig.base.json`, etc.)
-- Architecture decisions tracked in `.ai/ARCHITECTURE.md` and `.ai/adr/` (ADR-0001, ADR-0002)
+- Architecture decisions tracked in `.ai/ARCHITECTURE.md` and `.ai/adr/` (ADR-0001 through ADR-0004)

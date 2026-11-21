@@ -2,11 +2,26 @@ import crypto from 'node:crypto';
 import * as path from 'node:path';
 import * as fs from 'fs-extra';
 import inquirer from 'inquirer';
+import {
+  buildUniversalAgentPrompt,
+  detectActiveAgentName,
+  isAiAgentEnvironment,
+} from '../config/agentPrompt.js';
 import { generateDocs } from '../generators/docs.js';
 import { generateMonorepo } from '../generators/monorepo.js';
 import { generatePackageJson } from '../generators/packageJson.js';
 import type { ProjectAnswers } from '../types/project.js';
-import { isDirectoryEmpty } from '../utils/fileSystem.js';
+import { isDirectoryEmpty, isSpecOnlyDirectory } from '../utils/fileSystem.js';
+
+export interface InitAgentOptions {
+  agent?: boolean;
+  inPlace?: boolean;
+  name?: string;
+  title?: string;
+  domain?: string;
+  problem?: string;
+  printPrompt?: boolean;
+}
 
 const QUESTION_BLOCKS = {
   general: [
@@ -30,9 +45,18 @@ const QUESTION_BLOCKS = {
       choices: [
         { name: 'Web app', value: 'web' },
         { name: 'Web app + Telegram bot', value: 'web+bot' },
-        { name: 'Telegram Mini App (TMA Fullstack: React 19 + Hono + @tgwrapper/core)', value: 'tma' },
-        { name: 'Micro-SaaS Starter (Next.js 15 + Drizzle + PricingTable + Stripe)', value: 'saas' },
-        { name: 'Agent Platform & Control Room (Drizzle Traces + CAS Approval + @ui-construction-library/core)', value: 'agent' },
+        {
+          name: 'Telegram Mini App (TMA Fullstack: React 19 + Hono + @tgwrapper/core)',
+          value: 'tma',
+        },
+        {
+          name: 'Micro-SaaS Starter (Next.js 15 + Drizzle + PricingTable + Stripe)',
+          value: 'saas',
+        },
+        {
+          name: 'Agent Platform & Control Room (Drizzle Traces + CAS Approval + @ui-construction-library/core)',
+          value: 'agent',
+        },
         { name: 'Agent + Read-Only MCP + UDPA Gate (--template agent-mcp)', value: 'agent-mcp' },
       ],
     },
@@ -144,6 +168,7 @@ export const initCommand = {
     force = false,
     cliVersion?: string,
     templatePreset?: 'saas' | 'tma' | 'bot' | 'agent' | 'agent-mcp',
+    agentOptions?: InitAgentOptions,
   ) => {
     if (cliVersion) {
       const latest = await checkForUpdate(cliVersion);
@@ -158,69 +183,139 @@ export const initCommand = {
     console.log('\n Initializing new project...\n');
 
     const cwd = process.cwd();
-    const generalAnswers = await inquirer.prompt(QUESTION_BLOCKS.general);
-    const projectName = generalAnswers.projectName;
-    const projectDir = path.join(cwd, projectName);
+    const isHeadlessAgent = Boolean(
+      agentOptions?.agent || agentOptions?.name || process.env.CRS_AGENT_HEADLESS === '1',
+    );
 
-    console.log(`\n Creating project folder: ${projectName}\n`);
+    let answers: ProjectAnswers;
+    let projectName: string;
+    let projectDir: string;
 
-    try {
-      await fs.ensureDir(projectDir);
-    } catch (err) {
-      console.error(`\n Failed to create project folder: ${(err as Error).message}`);
-      return;
-    }
+    if (isHeadlessAgent) {
+      const useInPlace = Boolean(agentOptions?.inPlace || agentOptions?.name === '.');
+      if (useInPlace) {
+        projectDir = cwd;
+        projectName =
+          agentOptions?.name && agentOptions.name !== '.' ? agentOptions.name : path.basename(cwd);
+        console.log(`\n Initializing project in current folder: ${projectName}\n`);
+      } else {
+        projectName = agentOptions?.name ?? 'ready-stack-app';
+        projectDir = path.join(cwd, projectName);
+        console.log(`\n Creating project folder: ${projectName}\n`);
+      }
 
-    if (!force && !isDirectoryEmpty(projectDir)) {
-      const confirm = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'proceed',
-          message: `Folder "${projectName}" is not empty. Continue?`,
-          default: false,
-        },
-      ]);
-      if (!confirm.proceed) {
-        console.log('\n Project creation cancelled.');
+      try {
+        await fs.ensureDir(projectDir);
+      } catch (err) {
+        console.error(`\n Failed to create project folder: ${(err as Error).message}`);
         return;
       }
+
+      if (!force && !isDirectoryEmpty(projectDir) && !isSpecOnlyDirectory(projectDir)) {
+        console.error(`\n Folder "${projectName}" is not empty. Pass --force to overwrite.`);
+        return;
+      }
+
+      const selectedFormat = (templatePreset ?? 'saas') as ProjectAnswers['format'];
+      const includeBot =
+        selectedFormat === 'web+bot' || selectedFormat === 'bot' || selectedFormat === 'tma';
+
+      answers = {
+        projectName,
+        projectTitle: agentOptions?.title ?? 'Ready Stack App',
+        format: selectedFormat,
+        frontend: selectedFormat === 'saas' ? 'nextjs' : 'vite-spa',
+        multiUser: true,
+        useDocker: true,
+        useTailwind: true,
+        useSentry: false,
+        backendFramework: 'hono',
+        orm: 'drizzle',
+        useUILibrary: true,
+        includeBot,
+        problem: agentOptions?.problem ?? 'Production-grade core-first application',
+        targetAudience: 'Developers and teams',
+        mainScenario: 'Authenticate, execute core domain workflow, and observe telemetry',
+        successCriteria: 'All tests, lint, typecheck, and UDPA checks pass',
+        metrics: 'Activation, retention, and zero P0 invariant regressions',
+        timeBudget: '1-2 weeks MVP',
+        financialConstraints: 'Lean serverless / self-hosted budget',
+        stackRequirements: 'Node.js >=24, TypeScript strict, core-infra packages',
+        integrations: 'Paddle MoR, Telegram Stars (XTR), CryptoBot USDT',
+        functionsV1: 'Auth, core domain CRUD, billing webhooks, telemetry',
+        hypotheses: 'Core-first reuse cuts time-to-MVP by >5x',
+        risks: 'Scope creep or invariant axis drift',
+        criticalRisk: 'Violating idempotency or integer numeric precision invariants',
+        coreDomain: agentOptions?.domain ?? 'items',
+        jwtSecret: crypto.randomBytes(32).toString('hex'),
+      };
+    } else {
+      const generalAnswers = await inquirer.prompt(QUESTION_BLOCKS.general);
+      projectName = generalAnswers.projectName;
+      projectDir = path.join(cwd, projectName);
+
+      console.log(`\n Creating project folder: ${projectName}\n`);
+
+      try {
+        await fs.ensureDir(projectDir);
+      } catch (err) {
+        console.error(`\n Failed to create project folder: ${(err as Error).message}`);
+        return;
+      }
+
+      if (!force && !isDirectoryEmpty(projectDir)) {
+        const confirm = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'proceed',
+            message: `Folder "${projectName}" is not empty. Continue?`,
+            default: false,
+          },
+        ]);
+        if (!confirm.proceed) {
+          console.log('\n Project creation cancelled.');
+          return;
+        }
+      }
+
+      const level01Answers = await inquirer.prompt(QUESTION_BLOCKS.level01);
+      const level02Answers = await inquirer.prompt(QUESTION_BLOCKS.level02);
+
+      const selectedFormat =
+        (templatePreset as typeof generalAnswers.format) || generalAnswers.format;
+      const includeBot =
+        selectedFormat === 'web+bot' || selectedFormat === 'bot' || selectedFormat === 'tma';
+
+      answers = {
+        projectName,
+        projectTitle: generalAnswers.projectTitle,
+        format: selectedFormat,
+        frontend: generalAnswers.frontend,
+        multiUser: generalAnswers.multiUser,
+        useDocker: generalAnswers.useDocker,
+        useTailwind: generalAnswers.useTailwind,
+        useSentry: generalAnswers.useSentry,
+        backendFramework: generalAnswers.backendFramework,
+        orm: generalAnswers.orm,
+        useUILibrary: generalAnswers.useUILibrary,
+        includeBot,
+        problem: level01Answers.problem,
+        targetAudience: level01Answers.targetAudience,
+        mainScenario: level01Answers.mainScenario,
+        successCriteria: level01Answers.successCriteria,
+        metrics: level01Answers.metrics,
+        timeBudget: level01Answers.timeBudget,
+        financialConstraints: level01Answers.financialConstraints,
+        stackRequirements: level01Answers.stackRequirements,
+        integrations: level01Answers.integrations,
+        functionsV1: level01Answers.functionsV1,
+        hypotheses: level01Answers.hypotheses,
+        risks: level01Answers.risks,
+        criticalRisk: level01Answers.criticalRisk,
+        coreDomain: level02Answers.coreDomain,
+        jwtSecret: crypto.randomBytes(32).toString('hex'),
+      };
     }
-
-    const level01Answers = await inquirer.prompt(QUESTION_BLOCKS.level01);
-    const level02Answers = await inquirer.prompt(QUESTION_BLOCKS.level02);
-
-    const selectedFormat = (templatePreset as typeof generalAnswers.format) || generalAnswers.format;
-    const includeBot = selectedFormat === 'web+bot' || selectedFormat === 'bot' || selectedFormat === 'tma';
-
-    const answers: ProjectAnswers = {
-      projectName,
-      projectTitle: generalAnswers.projectTitle,
-      format: selectedFormat,
-      frontend: generalAnswers.frontend,
-      multiUser: generalAnswers.multiUser,
-      useDocker: generalAnswers.useDocker,
-      useTailwind: generalAnswers.useTailwind,
-      useSentry: generalAnswers.useSentry,
-      backendFramework: generalAnswers.backendFramework,
-      orm: generalAnswers.orm,
-      useUILibrary: generalAnswers.useUILibrary,
-      includeBot,
-      problem: level01Answers.problem,
-      targetAudience: level01Answers.targetAudience,
-      mainScenario: level01Answers.mainScenario,
-      successCriteria: level01Answers.successCriteria,
-      metrics: level01Answers.metrics,
-      timeBudget: level01Answers.timeBudget,
-      financialConstraints: level01Answers.financialConstraints,
-      stackRequirements: level01Answers.stackRequirements,
-      integrations: level01Answers.integrations,
-      functionsV1: level01Answers.functionsV1,
-      hypotheses: level01Answers.hypotheses,
-      risks: level01Answers.risks,
-      criticalRisk: level01Answers.criticalRisk,
-      coreDomain: level02Answers.coreDomain,
-      jwtSecret: crypto.randomBytes(32).toString('hex'),
-    };
 
     console.log('\n Generating project...\n');
 
@@ -240,15 +335,35 @@ export const initCommand = {
     console.log(`   cd ${projectName}`);
     console.log('   pnpm install');
     console.log('   pnpm check');
+    console.log(`   Review ${projectName}/.ai/AGENT_PROMPT.md`);
     console.log('   git init && git add . && git commit -m "chore: init project"');
     console.log('\nStack used:');
     console.log(`   Backend:   ${answers.backendFramework === 'hono' ? 'Hono 4' : 'Express 5'}`);
     console.log(`   ORM:       ${answers.orm === 'drizzle' ? 'Drizzle ORM' : 'Prisma'}`);
-    console.log(`   Frontend:  ${answers.frontend === 'nextjs' ? 'Next.js 15 + React 19' : 'React 19 + Vite 8 + TanStack Query 5'}`);
-    if (answers.includeBot) console.log(`   Bot:       @tgwrapper/core`);
-    if (answers.useUILibrary) console.log(`   UI:        @ui-construction-library`);
-    if (answers.useTailwind) console.log(`   CSS:       Tailwind CSS v4`);
-    if (answers.useSentry) console.log(`   Monitoring: Sentry`);
+    console.log(
+      `   Frontend:  ${answers.frontend === 'nextjs' ? 'Next.js 15 + React 19' : 'React 19 + Vite 8 + TanStack Query 5'}`,
+    );
+    if (answers.includeBot) console.log('   Bot:       @tgwrapper/core');
+    if (answers.useUILibrary) console.log('   UI:        @ui-construction-library');
+    if (answers.useTailwind) console.log('   CSS:       Tailwind CSS v4');
+    if (answers.useSentry) console.log('   Monitoring: Sentry');
     console.log('');
+
+    const isAgentRun = Boolean(
+      agentOptions?.agent || agentOptions?.printPrompt || isAiAgentEnvironment(process.env),
+    );
+    if (isAgentRun) {
+      const activeAgent = detectActiveAgentName(process.env);
+      console.log('[AI_AGENT_MODE_DETECTED]');
+      console.log(`Active agent: ${activeAgent}`);
+      console.log(
+        `Execute Phases 1-4 from ${projectName}/.ai/AGENT_PROMPT.md using core-infra packages and ecosystem donors.`,
+      );
+      if (agentOptions?.agent || agentOptions?.printPrompt) {
+        console.log('\n--- BEGIN UNIVERSAL AGENT LAUNCH PROMPT ---\n');
+        console.log(buildUniversalAgentPrompt(answers));
+        console.log('--- END UNIVERSAL AGENT LAUNCH PROMPT ---\n');
+      }
+    }
   },
 };

@@ -2,7 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import fs from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { isDirectoryEmpty } from './fileSystem.js';
+import { isDirectoryEmpty, isSpecOnlyDirectory } from './fileSystem.js';
 
 let tmpDir: string;
 
@@ -38,5 +38,25 @@ describe('isDirectoryEmpty', () => {
 
   it('returns true for non-existent directory', () => {
     expect(isDirectoryEmpty(path.join(tmpDir, 'nonexistent'))).toBe(true);
+  });
+});
+
+describe('isSpecOnlyDirectory', () => {
+  it('returns true for directory containing only markdown specs and dotfiles', async () => {
+    await fs.writeFile(path.join(tmpDir, 'mvp.md'), '# MVP');
+    await fs.writeFile(path.join(tmpDir, '40.md'), '# 40 arcs');
+    await fs.writeFile(path.join(tmpDir, '.DS_Store'), '');
+    await fs.ensureDir(path.join(tmpDir, '.git'));
+    expect(isSpecOnlyDirectory(tmpDir)).toBe(true);
+  });
+
+  it('returns false for completely empty directory', () => {
+    expect(isSpecOnlyDirectory(tmpDir)).toBe(false);
+  });
+
+  it('returns false when code or config files exist', async () => {
+    await fs.writeFile(path.join(tmpDir, 'mvp.md'), '# MVP');
+    await fs.writeFile(path.join(tmpDir, 'package.json'), '{}');
+    expect(isSpecOnlyDirectory(tmpDir)).toBe(false);
   });
 });

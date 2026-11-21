@@ -117,11 +117,57 @@ describe('generateDocs', () => {
     expect(await fs.pathExists(path.join(tmpDir, '.ai', 'ARCHITECTURE.md'))).toBe(true);
     expect(await fs.pathExists(path.join(tmpDir, '.ai', 'CONVENTIONS.md'))).toBe(true);
     expect(await fs.pathExists(path.join(tmpDir, '.ai', 'COMMON_TASKS.md'))).toBe(true);
+    expect(await fs.pathExists(path.join(tmpDir, '.ai', 'AGENT_PROMPT.md'))).toBe(true);
     expect(await fs.pathExists(path.join(tmpDir, '.ai', 'adr', '0000-template.md'))).toBe(true);
     expect(
       await fs.pathExists(
         path.join(tmpDir, '.ai', 'adr', '0001-initial-stack-and-privacy-baseline.md'),
       ),
     ).toBe(true);
+  });
+
+  it('indexes ADR-0001 and AGENT_PROMPT.md in .ai/ARCHITECTURE.md and populates AGENT_PROMPT.md', async () => {
+    await generateDocs(tmpDir, defaultAnswers);
+
+    const arch = await fs.readFile(path.join(tmpDir, '.ai', 'ARCHITECTURE.md'), 'utf-8');
+    expect(arch).toContain('## 5. Active ADRs');
+    expect(arch).toContain('0001-initial-stack-and-privacy-baseline.md');
+    expect(arch).toContain('.ai/AGENT_PROMPT.md');
+
+    const adr0001 = await fs.readFile(
+      path.join(tmpDir, '.ai', 'adr', '0001-initial-stack-and-privacy-baseline.md'),
+      'utf-8',
+    );
+    expect(adr0001).toContain('**Applies-To:**');
+
+    const agentPrompt = await fs.readFile(path.join(tmpDir, '.ai', 'AGENT_PROMPT.md'), 'utf-8');
+    expect(agentPrompt).toContain('# Universal Core-First Project Launch Prompt');
+    expect(agentPrompt).toContain('[ZERO_PROMPT_AUTONOMOUS_STARTUP]');
+    expect(agentPrompt).toContain('Test Project');
+    expect(agentPrompt).toContain('test-project');
+    expect(agentPrompt).toContain('@ui-construction-library/core');
+    expect(agentPrompt).toContain('@tgwrapper/core');
+    expect(agentPrompt).toContain('Test problem statement');
+  });
+
+  it('generates root AGENTS.md and CLAUDE.md and discovers pre-existing spec markdown files', async () => {
+    await fs.writeFile(path.join(tmpDir, 'mvp.md'), '# FeedFlip MVP');
+    await fs.writeFile(path.join(tmpDir, '40.md'), '# 40 Curated Arcs');
+
+    await generateDocs(tmpDir, defaultAnswers);
+
+    expect(await fs.pathExists(path.join(tmpDir, 'AGENTS.md'))).toBe(true);
+    expect(await fs.pathExists(path.join(tmpDir, 'CLAUDE.md'))).toBe(true);
+
+    const agentsMd = await fs.readFile(path.join(tmpDir, 'AGENTS.md'), 'utf-8');
+    expect(agentsMd).toContain('## 0. Zero-Prompt Autonomous Execution Mandate');
+    expect(agentsMd).toContain('`40.md`, `mvp.md`');
+
+    const claudeMd = await fs.readFile(path.join(tmpDir, 'CLAUDE.md'), 'utf-8');
+    expect(claudeMd).toContain('## 0. Zero-Prompt Autonomous Execution Mandate');
+    expect(claudeMd).toContain('`40.md`, `mvp.md`');
+
+    const agentPrompt = await fs.readFile(path.join(tmpDir, '.ai', 'AGENT_PROMPT.md'), 'utf-8');
+    expect(agentPrompt).toContain('`40.md`, `mvp.md`');
   });
 });
