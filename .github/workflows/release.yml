@@ -16,6 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       # registry-url is required — setup-node writes
       # //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} into ~/.npmrc
@@ -38,7 +40,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm test
       - run: pnpm build
+      - run: pnpm test
       - name: Publish to npm
         run: npm publish --access public --provenance
