@@ -72,6 +72,12 @@ export async function cli() {
           describe: 'Include read-only stdio MCP server (packages/mcp) and UDPA gate workflow',
           default: false,
         },
+        blueprint: {
+          type: 'boolean',
+          describe:
+            'Generate architecture-blueprint.json and open decisions before scaffolding files',
+          default: false,
+        },
         'print-prompt': {
           type: 'boolean',
           describe: 'Print the universal AI agent launch prompt after scaffolding',
@@ -104,6 +110,7 @@ export async function cli() {
           agent?: boolean;
           inPlace?: boolean;
           withMcp?: boolean;
+          blueprint?: boolean;
           printPrompt?: boolean;
           name?: string;
           title?: string;
@@ -115,6 +122,7 @@ export async function cli() {
           agent: parsed.agent,
           inPlace: parsed.inPlace,
           withMcp: parsed.withMcp,
+          blueprint: parsed.blueprint,
           printPrompt: parsed.printPrompt,
           name: parsed.name,
           title: parsed.title,

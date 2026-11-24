@@ -319,9 +319,9 @@ describe('init command handler', () => {
     });
 
     const projectDir = path.join(tmpDir, 'saas-mcp-app');
-    expect(
-      await fs.pathExists(path.join(projectDir, 'packages', 'mcp', 'src', 'server.ts')),
-    ).toBe(true);
+    expect(await fs.pathExists(path.join(projectDir, 'packages', 'mcp', 'src', 'server.ts'))).toBe(
+      true,
+    );
     expect(
       await fs.pathExists(path.join(projectDir, '.github', 'workflows', 'udpa-gate.yml')),
     ).toBe(true);
@@ -343,5 +343,36 @@ describe('init command handler', () => {
     expect(mcpServer).toContain('bds://saas-mcp-app/lineage-citations');
     expect(mcpServer).toContain('bds://saas-mcp-app/active-workspace-context');
     logSpy.mockRestore();
+  });
+
+  it('writes architecture-blueprint.json without generating monorepo files when --blueprint is set', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { initCommand } = await import('./init.js');
+    await initCommand.handler(false, '0.6.0', 'saas', {
+      agent: true,
+      blueprint: true,
+      name: 'demo-blueprint',
+      title: 'Demo Blueprint',
+      domain: 'orders',
+      problem: 'Validate boundaries before scaffolding',
+    });
+
+    const projectDir = path.join(tmpDir, 'demo-blueprint');
+    expect(await fs.pathExists(path.join(projectDir, 'architecture-blueprint.json'))).toBe(true);
+    expect(await fs.pathExists(path.join(projectDir, 'package.json'))).toBe(false);
+
+    // Pre-write collision guard when directory is non-empty without --force
+    await fs.writeFile(path.join(projectDir, 'existing-code.ts'), 'export const x = 1;');
+    await initCommand.handler(false, '0.6.0', 'saas', {
+      agent: true,
+      blueprint: true,
+      name: 'demo-blueprint',
+    });
+    expect(errSpy).toHaveBeenCalledWith(expect.stringContaining('not empty'));
+
+    logSpy.mockRestore();
+    errSpy.mockRestore();
   });
 });

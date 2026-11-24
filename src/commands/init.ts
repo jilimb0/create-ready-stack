@@ -7,6 +7,10 @@ import {
   detectActiveAgentName,
   isAiAgentEnvironment,
 } from '../config/agentPrompt.js';
+import {
+  generateArchitectureBlueprint,
+  writeArchitectureBlueprint,
+} from '../generators/blueprint.js';
 import { generateDocs } from '../generators/docs.js';
 import { generateMonorepo } from '../generators/monorepo.js';
 import { generatePackageJson } from '../generators/packageJson.js';
@@ -17,6 +21,7 @@ export interface InitAgentOptions {
   agent?: boolean;
   inPlace?: boolean;
   withMcp?: boolean;
+  blueprint?: boolean;
   name?: string;
   title?: string;
   domain?: string;
@@ -329,6 +334,20 @@ export const initCommand = {
         coreDomain: level02Answers.coreDomain,
         jwtSecret: crypto.randomBytes(32).toString('hex'),
       };
+    }
+
+    if (agentOptions?.blueprint) {
+      const blueprintPath = await writeArchitectureBlueprint(projectDir, answers);
+      const preview = generateArchitectureBlueprint(answers);
+      console.log(`   ✓ Blueprint created: ${blueprintPath}`);
+      console.log(
+        `   Nodes: ${preview.nodes.length} | Edges: ${preview.edges.length} | Open decisions: ${preview.openDecisions.length}`,
+      );
+      for (const decision of preview.openDecisions) {
+        console.log(`   - [${decision.udpaAxis}] ${decision.question}`);
+      }
+      console.log('\nValidate system boundaries above before scaffolding full monorepo files.\n');
+      return;
     }
 
     console.log('\n Generating project...\n');

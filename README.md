@@ -158,7 +158,9 @@ npx create-ready-stack init --template bot
 |---------|-------------|
 | `create-ready-stack init` | Start interactive scaffolding |
 | `create-ready-stack init --force` | Overwrite existing directory |
-| `create-ready-stack init --template <saas\|tma\|bot>` | Scaffold specialized starter preset instantly |
+| `create-ready-stack init --template <saas\|tma\|bot\|agent\|agent-mcp>` | Scaffold specialized starter preset instantly |
+| `create-ready-stack init --agent --blueprint --template saas --name my-app` | Generate `architecture-blueprint.json` (`gavel/floorplan@1`) and 6-axis open decisions before writing files |
+| `create-ready-stack init --with-mcp` | Include read-only `stdio` MCP server (`packages/mcp`) and UDPA gate workflow |
 | `create-ready-stack upgrade` | Dry-run check existing project for upgradable config templates |
 | `create-ready-stack upgrade --apply` | Overwrite existing config files with latest templates |
 | `create-ready-stack --help` | Show help with examples |

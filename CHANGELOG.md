@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 (2026-11-24)
+
+### Added
+- PRD-to-Architecture Blueprint mode (`create-ready-stack init --blueprint`) generating `architecture-blueprint.json` (`gavel/floorplan@1`, `mode: 'prd_blueprint'`, `VERSIONS`-locked stack, and 6-axis `openDecisions`) before writing monorepo files (`ADR-0006`)
+- `TerminalShell` (`WidgetLinkProvider`, `CommandPalette`, `SourceLineageDrawer`) and `--with-mcp` read-only `bds://*/lineage-citations` + PII-scrubbed `bds://*/active-workspace-context` scaffolding (`ADR-0005`)
+
 ## 0.6.0 (2026-11-21)
 
 ### Added
