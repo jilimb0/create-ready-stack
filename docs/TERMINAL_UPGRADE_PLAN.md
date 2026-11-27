@@ -1,7 +1,10 @@
 # create-ready-stack — План встраивания Terminal UX & Read-Only MCP в генератор проектов
 
 > **Репозиторий:** `core-infra/create-ready-stack` (`--template web | web+bot | tma | saas | agent | agent-mcp`)  
-> **Статус плана:** Пресеты `agent` / `agent-mcp` и headless `--agent --in-place` с `AGENTS.md`/`CLAUDE.md`/`AGENT_PROMPT.md` реализованы в v0.6.0 (`ADR-0003`, `ADR-0004`); требуется встроить из коробки Bloomberg/Koyfin UX-паттерны (`WidgetLinkProvider`, `CommandPalette`, `SourceLineageDrawer`) и стандартизированный каталог MCP-ресурсов (`bdp://`, `bdh://`, `bds://`) во все генерируемые шаблоны.  
+> **Статус плана: ✅ РЕАЛИЗОВАНО В КОДЕ (2026-11-21 / 2026-11-24)**  
+> **Реализующие ADR и ключевые файлы:**  
+> - `ADR-0005` (`.ai/adr/0005-terminal-ux-and-mcp-context-scaffolding.md`): `src/generators/terminalKit.ts`, `src/generators/agent.ts`, `src/generators/saas.ts`, `src/generators/web.ts`, `src/config/versions.ts`, `src/commands/init.ts`  
+> - `ADR-0006` (`.ai/adr/0006-prd-to-architecture-blueprint-mode.md`): `src/generators/blueprint.ts`, `src/commands/init.ts`, `src/cli.ts`  
 > **Связанные активные ADR (строгие инварианты):**  
 > - `ADR-0001`: детерминированная генерация монорепозитория без ошибок линтера и pre-write защита коллизий.  
 > - `ADR-0002`: встроенный биллинг, Telegram Stars и вебхуки с идемпотентностью.  

@@ -14,7 +14,7 @@ create-ready-stack — Automated fullstack CLI generator and project scissoring 
 - Template generation in `src/generators` must produce deterministic, lint-clean projects.
 - Generated projects must include `.ai/` architecture baseline and strict privacy defaults.
 - Filesystem writes in `src/utils` must validate target directory non-collision before write.
-- Presets (`saas`, `tma`, `bot`) must reuse centralized dependency versions from `src/config/versions.ts`.
+- Presets (`saas`, `tma`, `bot`, `agent`, `agent-mcp`, plus `--blueprint` mode) must reuse centralized dependency versions from `src/config/versions.ts`.
 
 ## 4. Data Flows & External Boundaries
 - Inbound requests are validated at perimeter boundaries using strict schemas.

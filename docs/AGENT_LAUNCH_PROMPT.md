@@ -23,8 +23,9 @@ Your mission is to design, scaffold, and ship a production-ready application str
 - **Template Preset:** `<saas|tma|bot|web+bot|agent|agent-mcp>`
 - **Backend / Runtime:** Node.js >=24, TypeScript strict, Hono 4 (^4.7.0), Zod ^4.6.7
 - **Data Layer:** Drizzle ORM (^0.44.0) (PostgreSQL 16 or built-in `node:sqlite` WAL mode)
-- **Frontend:** Vite 8 (^8.0.0) + React 19 (^19.1.0) + TanStack Query 5 (^5.75.0) + Tailwind CSS v4 + `@ui-construction-library/core` (^0.10.0)
-- **Bot / TMA Layer:** `@tgwrapper/core` (^0.21.0) + `@tgwrapper/adapter-redis` (^0.8.0)
+- **Frontend:** Vite 8 (^8.0.0) + React 19 (^19.1.0) + TanStack Query 5 (^5.75.0) + Tailwind CSS v4 + `@ui-construction-library/core` (^0.10.1)
+- **Bot / TMA Layer:** `@tgwrapper/core` (^0.21.1) + `@tgwrapper/adapter-redis` (^0.9.1)
+- **CLI Flags:** Supports `--template <saas|tma|bot|web+bot|agent|agent-mcp>`, `--with-mcp`, and `--blueprint` (PRD-to-Architecture Floorplan `gavel/floorplan@1`).
 - **Core Domain:** `<core-domain>`
 - **Problem (Painkiller):** <1-2 sentences defining the high-pain problem and value proposition>
 - **Target Audience:** <primary buyer / ICP>
@@ -40,7 +41,7 @@ Never reinvent infrastructure already solved in `core-infra/`:
 4. **`udpa-engine`**: Enforce `.github/workflows/udpa-gate.yml` running `jilimb0/udpa-engine@v1` (`min-score: '85'`) with SARIF + ZK passport outputs.
 
 ## [ECOSYSTEM_DONOR_MODULES]
-Adopt and adapt battle-tested patterns from existing repositories instead of writing ad-hoc code:
+Adopt and adapt battle-tested patterns from existing repositories across all 22 registered ecosystem projects instead of writing ad-hoc code:
 
 | Capability | Ecosystem Donors | Verified Pattern to Reuse |
 |---|---|---|

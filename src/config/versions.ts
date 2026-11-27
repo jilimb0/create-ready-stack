@@ -28,7 +28,7 @@ export const VERSIONS = {
   vitest: '^3.2.0',
   turbo: '^2.9.0',
   biome: '^2.4.0',
-  '@types/node': '^26.0.0',
+  '@types/node': '^22.0.0',
   '@types/express': '^5.0.0',
   '@types/bcryptjs': '^2.4.0',
 
@@ -49,8 +49,8 @@ export const VERSIONS = {
   stripe: '^17.5.0',
 
   // Bot
-  tgwrapperCore: '^0.21.0',
-  tgwrapperRedis: '^0.8.0',
+  tgwrapperCore: '^0.21.1',
+  tgwrapperRedis: '^0.9.1',
 
   // Root
   '@biomejs/biome': '^2.4.0',
@@ -60,10 +60,10 @@ export const VERSIONS = {
   sentryReact: '^9.0.0',
   tailwindcssVite: '^4.1.0',
   tailwindcss: '^4.1.0',
-  uiLibraryCore: '^0.11.0',
-  uiLibrarySchema: '^0.11.0',
-  uiLibraryMotion: '^0.11.0',
-  uiLibraryTokens: '^0.11.0',
+  uiLibraryCore: '^0.10.1',
+  uiLibrarySchema: '^0.4.0',
+  uiLibraryMotion: '^0.5.1',
+  uiLibraryTokens: '^0.7.0',
 } as const;
 
 export type VersionKey = keyof typeof VERSIONS;
