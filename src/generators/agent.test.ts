@@ -52,7 +52,9 @@ vi.mock('zod', () => {
     },
   });
 
-  const unionSchema = (options: Array<{ safeParse: (v: unknown) => { success: boolean; data?: unknown } }>) => ({
+  const unionSchema = (
+    options: Array<{ safeParse: (v: unknown) => { success: boolean; data?: unknown } }>,
+  ) => ({
     safeParse(val: unknown) {
       for (const opt of options) {
         const res = opt.safeParse(val);
@@ -62,7 +64,9 @@ vi.mock('zod', () => {
     },
   });
 
-  const makeOptional = (inner: { safeParse: (v: unknown) => { success: boolean; data?: unknown } }) => ({
+  const makeOptional = (inner: {
+    safeParse: (v: unknown) => { success: boolean; data?: unknown };
+  }) => ({
     safeParse(val: unknown) {
       if (val === undefined) return { success: true as const, data: undefined };
       return inner.safeParse(val);
@@ -70,7 +74,10 @@ vi.mock('zod', () => {
   });
 
   const objectSchema = (
-    shape: Record<string, { safeParse: (v: unknown) => { success: boolean; data?: unknown }; optional?: () => unknown }>,
+    shape: Record<
+      string,
+      { safeParse: (v: unknown) => { success: boolean; data?: unknown }; optional?: () => unknown }
+    >,
   ) => ({
     safeParse(val: unknown) {
       if (typeof val !== 'object' || val === null) return { success: false as const };
@@ -85,22 +92,29 @@ vi.mock('zod', () => {
     },
   });
 
-  const wrapWithOptional = <T extends object>(schema: T): T & { optional: () => ReturnType<typeof makeOptional> } =>
+  const wrapWithOptional = <T extends object>(
+    schema: T,
+  ): T & { optional: () => ReturnType<typeof makeOptional> } =>
     Object.assign(schema, {
-      optional: () => makeOptional(schema as unknown as { safeParse: (v: unknown) => { success: boolean; data?: unknown } }),
+      optional: () =>
+        makeOptional(
+          schema as unknown as { safeParse: (v: unknown) => { success: boolean; data?: unknown } },
+        ),
     });
 
   return {
     z: {
-      object: (shape: Record<string, { safeParse: (v: unknown) => { success: boolean; data?: unknown } }>) =>
-        wrapWithOptional(objectSchema(shape)),
+      object: (
+        shape: Record<string, { safeParse: (v: unknown) => { success: boolean; data?: unknown } }>,
+      ) => wrapWithOptional(objectSchema(shape)),
       literal: (val: string) => wrapWithOptional(literalSchema(val)),
       string: () => wrapWithOptional(stringSchema()),
       number: () => wrapWithOptional(numberSchema()),
       unknown: () => wrapWithOptional(unknownSchema()),
       record: () => wrapWithOptional(recordSchema()),
-      union: (options: Array<{ safeParse: (v: unknown) => { success: boolean; data?: unknown } }>) =>
-        wrapWithOptional(unionSchema(options)),
+      union: (
+        options: Array<{ safeParse: (v: unknown) => { success: boolean; data?: unknown } }>,
+      ) => wrapWithOptional(unionSchema(options)),
     },
   };
 });
@@ -122,9 +136,16 @@ describe('create-ready-stack agent generator', () => {
     const schemaFile = files.find((f) => f.path.includes('agent-orchestration.schema.ts'));
     expect(schemaFile).toBeDefined();
     expect(schemaFile?.content).toContain('agentRuns');
+    expect(schemaFile?.content).toContain('approvalGates');
     expect(schemaFile?.content).toContain('totalCostMicros');
     expect(schemaFile?.content).toContain('selfCostMicros');
     expect(schemaFile?.content).not.toContain('cost_usd');
+
+    const apiFile = files.find((f) => f.path === 'apps/api/src/index.ts');
+    expect(apiFile).toBeDefined();
+    expect(apiFile?.content).toContain('/api/runs/:runId/traces/stream');
+    expect(apiFile?.content).toContain('/api/gates/:gateId/decide');
+    expect(apiFile?.content).toContain('expectedVersion');
 
     const pkgFile = files.find((f) => f.path.includes('apps/web/package.json'));
     expect(pkgFile).toBeDefined();

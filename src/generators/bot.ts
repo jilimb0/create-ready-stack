@@ -21,7 +21,7 @@ export async function generateBot(cwd: string, answers: ProjectAnswers) {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tgwrapper/core": "^0.20.0",
+    "@tgwrapper/core": "${version('tgwrapperCore')}",
     "@tgwrapper/adapter-redis": "${version('tgwrapperRedis')}"
   },
   "devDependencies": {

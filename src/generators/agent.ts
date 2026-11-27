@@ -395,7 +395,14 @@ if (isEntrypoint) {
 
 function buildAgentAppSource(projectName: string, projectTitle: string): string {
   return `import { useEffect, useState } from 'react';
-import { AgentControlRoom, LinkedPanel } from '@ui-construction-library/core';
+import {
+  AgentControlRoom,
+  type AgentNodeTelemetry,
+  type ApprovalDecisionInput,
+  type ApprovalGateItem,
+  LinkedPanel,
+  type TraceSpanItem,
+} from '@ui-construction-library/core';
 import type { FundamentalLineageCitation } from '@ui-construction-library/schema';
 import { TerminalShell, buildLineageDatasetProps } from './components/TerminalShell';
 
@@ -441,6 +448,48 @@ const SAMPLE_RUNS: AgentRunSummary[] = [
   },
 ];
 
+const SAMPLE_NODES: AgentNodeTelemetry[] = [
+  {
+    id: 'node-orch',
+    runId: 'RUN-001',
+    parentAgentId: null,
+    agentRole: 'Orchestrator',
+    stepStatus: 'RUNNING',
+    circuitState: 'CLOSED',
+    retryAttempt: 0,
+    selfCostMicros: 12000,
+    subtreeCostMicros: 42000,
+    tokensUsed: 6420,
+    contextLimitTokens: 128000,
+    contextUsageBps: 501,
+    durationMs: 1400,
+  },
+];
+
+const SAMPLE_SPANS: TraceSpanItem[] = [
+  {
+    id: 'span-1',
+    agentNodeId: 'node-orch',
+    spanType: 'MCP_TOOL',
+    toolName: 'udpa_assay',
+    redactedArgsJson: '{"targetPath":"."}',
+    costMicros: 30000,
+    tokensUsed: 12000,
+    startTimeMs: 1730000000000,
+    isBottleneck: false,
+  },
+];
+
+const INITIAL_GATES: ApprovalGateItem[] = [
+  {
+    id: 'gate-1',
+    agentNodeId: 'node-orch',
+    version: 1,
+    riskLevel: 'HIGH',
+    actionSummary: 'Approve CAS patch settlement',
+  },
+];
+
 export function formatMicrosLabel(costMicros: number): string {
   const safeMicros = BigInt(Math.trunc(costMicros));
   const cents = safeMicros / 10000n;
@@ -452,7 +501,13 @@ export function formatMicrosLabel(costMicros: number): string {
 export function App() {
   const [viewState, setViewState] = useState<AgentViewState>('default');
   const [selectedRunId, setSelectedRunId] = useState<string>(SAMPLE_RUNS[0]?.id ?? 'RUN-001');
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [pendingGates, setPendingGates] = useState<ApprovalGateItem[]>(INITIAL_GATES);
   const [lastInspected, setLastInspected] = useState<FundamentalLineageCitation | null>(null);
+
+  const handleDecideGate = async (decision: ApprovalDecisionInput): Promise<void> => {
+    setPendingGates((prev) => prev.filter((g) => g.id !== decision.gateId));
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -577,7 +632,15 @@ export function App() {
               <LinkedPanel group="green" title="Control Room &amp; Node Lineage">
                 {activeRun ? (
                   <div className="space-y-3">
-                    <AgentControlRoom runId={activeRun.id} />
+                    <AgentControlRoom
+                      runId={activeRun.id}
+                      nodes={SAMPLE_NODES}
+                      spans={SAMPLE_SPANS}
+                      pendingGates={pendingGates}
+                      selectedNodeId={selectedNodeId}
+                      onSelectNode={setSelectedNodeId}
+                      onDecideGate={handleDecideGate}
+                    />
                     {lastInspected && (
                       <p className="text-xs font-mono text-emerald-300">
                         Active lineage: {lastInspected.accessionNumber} ({lastInspected.metricCode})
@@ -682,6 +745,118 @@ export const agentNodes = sqliteTable('agent_nodes', {
 }, (table) => [
   index('idx_agent_nodes_run_parent').on(table.runId, table.parentAgentId),
 ]);
+export const approvalGates = sqliteTable('approval_gates', {
+  id: text('id').primaryKey(),
+  runId: text('run_id').notNull().references(() => agentRuns.id, { onDelete: 'cascade' }),
+  agentNodeId: text('agent_node_id').notNull(),
+  version: integer('version').notNull().default(1),
+  riskLevel: text('risk_level').notNull().default('HIGH'),
+  actionSummary: text('action_summary').notNull(),
+  status: text('status').notNull().default('PENDING'),
+  idempotencyKey: text('idempotency_key'),
+  updatedAtMs: integer('updated_at_ms').notNull().default(sql\`(unixepoch() * 1000)\`),
+}, (table) => [
+  index('idx_approval_gates_run_status').on(table.runId, table.status),
+]);
+`,
+    },
+    {
+      path: 'apps/api/package.json',
+      content: JSON.stringify(
+        {
+          name: `@${projectName}/api`,
+          version: '0.1.0',
+          private: true,
+          type: 'module',
+          scripts: {
+            dev: 'tsx watch src/index.ts',
+            build: 'tsc',
+            typecheck: 'tsc --noEmit',
+            test: 'vitest run',
+          },
+          dependencies: {
+            hono: version('hono'),
+            '@hono/node-server': version('honoNodeServer'),
+            'drizzle-orm': version('drizzleOrm'),
+            zod: version('zod'),
+          },
+          devDependencies: {
+            '@types/node': version('@types/node'),
+            tsx: version('tsx'),
+            typescript: version('typescript'),
+            vitest: version('vitest'),
+          },
+        },
+        null,
+        2,
+      ),
+    },
+    {
+      path: 'apps/api/src/index.ts',
+      content: `import { Hono } from 'hono';
+import { streamSSE } from 'hono/streaming';
+import { z } from 'zod';
+
+const GateDecisionSchema = z.object({
+  expectedVersion: z.number().int().positive(),
+  idempotencyKey: z.string().min(1),
+  decision: z.enum(['APPROVED', 'REJECTED', 'STEERED']),
+  steerInstruction: z.string().max(1000).optional(),
+});
+
+export interface GateRecord {
+  id: string;
+  version: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'STEERED';
+}
+
+export interface GateStore {
+  getGate(gateId: string): Promise<GateRecord | null>;
+  compareAndSet(gateId: string, expectedVersion: number, next: GateRecord): Promise<boolean>;
+}
+
+export function createAgentApiApp(store: GateStore) {
+  const app = new Hono();
+
+  app.get('/healthz', (c) => c.json({ ok: true, service: '${projectName}-api' }));
+
+  app.get('/api/runs/:runId/traces/stream', (c) => {
+    const runId = c.req.param('runId');
+    return streamSSE(c, async (stream) => {
+      await stream.writeSSE({
+        event: 'trace',
+        data: JSON.stringify({ runId, step: 'Orchestrator', status: 'RUNNING', costMicros: 12000 }),
+      });
+    });
+  });
+
+  app.post('/api/gates/:gateId/decide', async (c) => {
+    const gateId = c.req.param('gateId');
+    const parsed = GateDecisionSchema.safeParse(await c.req.json().catch(() => null));
+    if (!parsed.success) {
+      return c.json({ error: 'Invalid gate decision payload' }, 400);
+    }
+    const existing = await store.getGate(gateId);
+    if (!existing) {
+      return c.json({ error: 'Gate not found' }, 404);
+    }
+    if (existing.version !== parsed.data.expectedVersion) {
+      return c.json({ error: 'CAS version conflict', currentVersion: existing.version }, 409);
+    }
+    const next: GateRecord = {
+      id: gateId,
+      version: existing.version + 1,
+      status: parsed.data.decision,
+    };
+    const updated = await store.compareAndSet(gateId, parsed.data.expectedVersion, next);
+    if (!updated) {
+      return c.json({ error: 'CAS version conflict' }, 409);
+    }
+    return c.json({ gate: next, idempotencyKey: parsed.data.idempotencyKey });
+  });
+
+  return app;
+}
 `,
     },
     {

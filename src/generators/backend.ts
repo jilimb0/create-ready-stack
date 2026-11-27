@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import fs from 'fs-extra';
+import { version } from '../config/versions.js';
 import type { ProjectAnswers } from '../types/project.js';
 
 export async function generateBackend(cwd: string, answers: ProjectAnswers) {
@@ -36,25 +37,25 @@ export async function generateBackend(cwd: string, answers: ProjectAnswers) {
   "dependencies": {
     ${
       isHono
-        ? `"hono": "^4.7.0",
-    "@hono/node-server": "^1.14.0",
-    "zod": "^3.24.0"`
-        : `"express": "^5.2.0",
-    "zod": "^3.24.0"`
+        ? `"hono": "${version('hono')}",
+    "@hono/node-server": "${version('honoNodeServer')}",
+    "zod": "${version('zod')}"`
+        : `"express": "${version('express')}",
+    "zod": "${version('zod')}"`
     },
     ${
       isDrizzle
-        ? `"drizzle-orm": "^0.44.0",
-    "postgres": "^3.4.0"`
-        : `"@prisma/client": "^5.22.0",
-    "prisma": "^5.22.0"`
+        ? `"drizzle-orm": "${version('drizzleOrm')}",
+    "postgres": "${version('postgres')}"`
+        : `"@prisma/client": "${version('prismaClient')}",
+    "prisma": "${version('prisma')}"`
     }${
       answers.multiUser
         ? `,
-    "bcryptjs": "^2.4.3",
-    "jose": "^5.9.0"`
+    "bcryptjs": "${version('bcryptjs')}",
+    "jose": "${version('jose')}"`
         : ''
-    }${answers.useSentry ? ',\n    "@sentry/node": "^9.0.0"' : ''}
+    }${answers.useSentry ? `,\n    "@sentry/node": "${version('sentryNode')}"` : ''}
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
@@ -82,10 +83,10 @@ export async function generateBackend(cwd: string, answers: ProjectAnswers) {
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "express": "^5.2.0",
-    "zod": "^3.24.0",
-    "@prisma/client": "^5.22.0",
-    "prisma": "^5.22.0"${answers.multiUser ? ',\n    "bcryptjs": "^2.4.3",\n    "jose": "^5.9.0"' : ''}${answers.useSentry ? ',\n    "@sentry/node": "^9.0.0"' : ''}
+    "express": "${version('express')}",
+    "zod": "${version('zod')}",
+    "@prisma/client": "${version('prismaClient')}",
+    "prisma": "${version('prisma')}"${answers.multiUser ? `,\n    "bcryptjs": "${version('bcryptjs')}",\n    "jose": "${version('jose')}"` : ''}${answers.useSentry ? `,\n    "@sentry/node": "${version('sentryNode')}"` : ''}
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
@@ -183,9 +184,7 @@ export const db = drizzle(client, { schema });
   }
 
   if (isHono) {
-    const sentryImport = answers.useSentry
-      ? "import * as Sentry from '@sentry/node';\n"
-      : '';
+    const sentryImport = answers.useSentry ? "import * as Sentry from '@sentry/node';\n" : '';
     const sentryInit = answers.useSentry
       ? `\nSentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -219,13 +218,17 @@ ${answers.multiUser ? "app.route('/auth', auth);" : ''}
 
 app.get('/health', async (c) => {
   const health = { status: 'ok', project: '${answers.projectName}', timestamp: new Date().toISOString() };
-  try {${isDrizzle ? `
+  try {${
+    isDrizzle
+      ? `
     const { sql } = await import('drizzle-orm');
     const { db } = await import('./db/index.js');
-    await db.execute(sql\`SELECT 1\`);` : `
+    await db.execute(sql\`SELECT 1\`);`
+      : `
     const { PrismaClient } = await import('@prisma/client');
     const prisma = new PrismaClient();
-    await prisma.\$queryRaw\`SELECT 1\`;`}
+    await prisma.\$queryRaw\`SELECT 1\`;`
+  }
     return c.json({ ...health, db: 'connected' });
   } catch {
     return c.json({ ...health, db: 'disconnected' }, 503);
@@ -244,9 +247,7 @@ serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) }, (info) => {
 `,
     );
   } else {
-    const sentryImportEx = answers.useSentry
-      ? "import * as Sentry from '@sentry/node';\n"
-      : '';
+    const sentryImportEx = answers.useSentry ? "import * as Sentry from '@sentry/node';\n" : '';
     const sentryInitEx = answers.useSentry
       ? `\nSentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -263,7 +264,7 @@ serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) }, (info) => {
 });\n`
       : '';
     const sentryMiddleware = answers.useSentry
-      ? "\napp.use(Sentry.Handlers.requestHandler());\napp.use(Sentry.Handlers.tracingHandler());"
+      ? '\napp.use(Sentry.Handlers.requestHandler());\napp.use(Sentry.Handlers.tracingHandler());'
       : '';
 
     await fs.writeFile(
@@ -276,13 +277,17 @@ ${answers.multiUser ? "app.use('/auth', authRouter);" : ''}${sentryMiddleware}
 
 app.get('/health', async (_req, res) => {
   const health = { status: 'ok', project: '${answers.projectName}', timestamp: new Date().toISOString() };
-  try {${isDrizzle ? `
+  try {${
+    isDrizzle
+      ? `
     const { sql } = await import('drizzle-orm');
     const { db } = await import('./db/index.js');
-    await db.execute(sql\`SELECT 1\`);` : `
+    await db.execute(sql\`SELECT 1\`);`
+      : `
     const { PrismaClient } = await import('@prisma/client');
     const prisma = new PrismaClient();
-    await prisma.\$queryRaw\`SELECT 1\`;`}
+    await prisma.\$queryRaw\`SELECT 1\`;`
+  }
     res.json({ ...health, db: 'connected' });
   } catch {
     res.status(503).json({ ...health, db: 'disconnected' });
